@@ -223,6 +223,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\scanner.cpp"
+				>
+			</File>
+			<File
 				RelativePath="StdAfx.cpp"
 				>
 				<FileConfiguration
@@ -281,6 +285,10 @@
 			</File>
 			<File
 				RelativePath="GENERAL.H"
+				>
+			</File>
+			<File
+				RelativePath=".\scanner.h"
 				>
 			</File>
 			<File
