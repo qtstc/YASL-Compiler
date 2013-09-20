@@ -8,11 +8,12 @@
 #include "stdafx.h"  // A visual studio requirement
 
 
-#include "filemngr.h"
+#include "scanner.h"
 #include <iostream>
 
 int main(int argc, char* argv[])
 {   
+	/*
 	fileManagerClass theFile;     //Define the sourceprogram object
     char ch;
 
@@ -23,5 +24,10 @@ int main(int argc, char* argv[])
     cin.get();
 
     return (0);
+	*/
+
+
+	ScannerClass scanner;
+	scanner.printStateMatrix();
 }
 
