@@ -65,6 +65,7 @@ public:
 	int type;
 	int subtype;
 	string lexeme;
+	static string tokenIntToString(int tokenNameAsInt);
 private:
 }  ;
 
@@ -75,7 +76,6 @@ public:
 	State(int nextStateNum);
 	State(int nextStateNum,bool needPushBack,int type,int subtype,string lexeme);
 	friend ostream& operator<<(std::ostream &strm, const State &s);
-	static string tokenIntToString(int tokenNameAsInt);
 	int nextStateNum;
 	Action action;
 	bool needPushBack;

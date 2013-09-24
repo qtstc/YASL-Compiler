@@ -13,12 +13,7 @@ TokenClass::TokenClass(int type, int subtype, string lexeme):type(type),subtype(
 
 State::State():nextStateNum(INVALID_STATE),action(NO_ACTION),token(NULL),actionInfo(NULL),needPushBack(false){}
 
-State::State(int nextStateNum):nextStateNum(nextStateNum),action(NO_ACTION),token(NULL),actionInfo(NULL),needPushBack(false){}
-
-State::State(int nextStateNum,bool needPushBack,int type,int subtype,string lexeme):nextStateNum(nextStateNum),needPushBack(needPushBack),token(new TokenClass(type,subtype,lexeme)),action(ACCEPT),actionInfo(NULL)
-{}
-
-string State::tokenIntToString(int tokenNameAsInt)
+string TokenClass::tokenIntToString(int tokenNameAsInt)
 {
 	switch(tokenNameAsInt)
 	{
@@ -85,13 +80,17 @@ string State::tokenIntToString(int tokenNameAsInt)
 		default:
 			return "Error, not a type";
 	}
-
 }
+
+State::State(int nextStateNum):nextStateNum(nextStateNum),action(NO_ACTION),token(NULL),actionInfo(NULL),needPushBack(false){}
+
+State::State(int nextStateNum,bool needPushBack,int type,int subtype,string lexeme):nextStateNum(nextStateNum),needPushBack(needPushBack),token(new TokenClass(type,subtype,lexeme)),action(ACCEPT),actionInfo(NULL)
+{}
 
 std::ostream& operator<<(std::ostream &strm, const State &s) {
 	if(s.token != NULL)
 	{
-		return  strm <<"{"<< s.nextStateNum <<"}"<<State::tokenIntToString(s.token->type)<<" "<<State::tokenIntToString(s.token->subtype)<<" "<<s.token->lexeme;
+		return  strm <<"{"<< s.nextStateNum <<"}"<<TokenClass::tokenIntToString(s.token->type)<<" "<<TokenClass::tokenIntToString(s.token->subtype)<<" "<<s.token->lexeme;
 	}
 	return strm <<"{"<< s.nextStateNum <<"}"<<"NULL";
 }
@@ -113,8 +112,8 @@ void ScannerClass::buildStateMatrix()
 {
 	int nonFinalStateNum = 0;
 
-	for(int i = 0;i<MAX_STATE;i++)
-		for(int j = 0;j<MAX_CHAR;j++)
+	for(int i = 0;i<MAX_STATE;++i)
+		for(int j = 0;j<MAX_CHAR;++j)
 			stateMatrix[i][j] = State();
 
 	//Read carriage return and whitespace at state 0 lead to 0
@@ -134,14 +133,14 @@ void ScannerClass::buildStateMatrix()
 	//Read "="
 	int firstEqualStateNum = ++nonFinalStateNum;//State with number zero is reserved for the starting state
 	stateMatrix[0]['='] = State(firstEqualStateNum);//Read first equal
-	for(int i = 0;i<MAX_CHAR;i++)
+	for(int i = 0;i<MAX_CHAR;++i)
 		stateMatrix[firstEqualStateNum][i] = State(0,true,ASSIGNMENT_T,NONE_ST,"=");
 	stateMatrix[firstEqualStateNum]['=']=State(0,false,ARITHM_T,EQUAL_ST,"==");
 
 	//Read "<"
 	int firstLessThanStateNum = ++nonFinalStateNum;
 	stateMatrix[0]['<'] = State(firstLessThanStateNum);
-	for(int i = 0;i<MAX_CHAR;i++)
+	for(int i = 0;i<MAX_CHAR;++i)
 		stateMatrix[firstLessThanStateNum][i] = State(0,true,RELOP_T,LESS_ST,"<");
 	stateMatrix[firstLessThanStateNum]['<'] = State(0,false,BITWISE_T,BITLEFT_ST,"<<");
 	stateMatrix[firstLessThanStateNum]['>'] = State(0,false,RELOP_T,UNEQUAL_ST,"<>");
@@ -150,10 +149,19 @@ void ScannerClass::buildStateMatrix()
 	//Read ">"
 	int firstGreaterThanStateNum = ++nonFinalStateNum;
 	stateMatrix[0]['>']=State(firstGreaterThanStateNum);
-	for(int i = 0;i<MAX_CHAR;i++)
+	for(int i = 0;i<MAX_CHAR;++i)
 		stateMatrix[firstGreaterThanStateNum][i] = State(0,true,RELOP_T,LESS_ST,">");
 	stateMatrix[firstLessThanStateNum]['<'] = State(0,false,BITWISE_T,BITRIGHT_ST,">>");
 	stateMatrix[firstLessThanStateNum]['='] = State(0,false,RELOP_T,GREATEROREQUAL_ST,">=");
+	
+	//Read digit
+	int firstDigitStateNum = ++nonFinalStateNum;
+	string digits = "0123456789";
+	for(int i = 0;i<digits.length;++i)
+	{
+		stateMatrix[0][digits[i]] = State(firstDigitStateNum);
+		stateMatrix[firstDigitStateNum][digits[i]] = State(firstDigitStateNum);
+	}
 }
 
 void ScannerClass::printStateMatrix()
