@@ -21,13 +21,15 @@ int main(int argc, char* argv[])
     while ((ch = theFile.getNextChar()) != EOF){}
 	cout<<"YASLC-TQ has just compiled "<<theFile.numLinesProcessed()<< " lines of code.";
     theFile.closeSourceProgram();
-    cin.get();
-
-    return (0);
 	*/
 
 
 	ScannerClass scanner;
 	scanner.printStateMatrix();
+	//char c = ' ';
+	//cout<<(int)c;
+	cin.get();
+
+    return (0);
 }
 
