@@ -78,14 +78,17 @@ string TokenClass::tokenIntToString(int tokenNameAsInt)
 		case ASSIGNMENT_T:
 			return "ASSIGNMENT_T";
 		default:
-			return "Error, not a type";
+			return "Error";
 	}
 }
 
 State::State(int nextStateNum):nextStateNum(nextStateNum),action(NO_ACTION),token(NULL),actionInfo(NULL),needPushBack(false){}
 
-State::State(int nextStateNum,bool needPushBack,int type,int subtype,string lexeme):nextStateNum(nextStateNum),needPushBack(needPushBack),token(new TokenClass(type,subtype,lexeme)),action(ACCEPT),actionInfo(NULL)
-{}
+State::State(bool needPushBack,int type,int subtype,string lexeme):nextStateNum(0),needPushBack(needPushBack),token(new TokenClass(type,subtype,lexeme)),action(ACCEPT),actionInfo(NULL){}
+
+State::State(Action errorOrWarningAction, string message):nextStateNum(0),action(errorOrWarningAction),needPushBack(false),token(NULL),actionInfo(new string(message)){}
+
+State::State(int nextStateNum,Action sideAction):nextStateNum(nextStateNum),action(sideAction),needPushBack(false),token(NULL),actionInfo(NULL){}
 
 std::ostream& operator<<(std::ostream &strm, const State &s) {
 	if(s.token != NULL)
@@ -122,46 +125,113 @@ void ScannerClass::buildStateMatrix()
 	stateMatrix[0][' '] = zeroState;
 
 	//Read *-+.,()~ goes to the respective final state with action ACCEPT
-	stateMatrix[0]['*'] = State(0,false,ARITHM_T,MULTIPLY_ST,"*");
-	stateMatrix[0]['-'] = State(0,false,ARITHM_T,SUBSTRACT_ST,"-");
-	stateMatrix[0]['+'] = State(0,false,ARITHM_T,ADD_ST,"+");
-	stateMatrix[0]['.'] = State(0,false,DOT_T,NONE_ST,".");
-	stateMatrix[0][','] = State(0,false,COMMA_T,NONE_ST,",");
-	stateMatrix[0]['('] = State(0,false,PAREN_T,LEFTPAREN_ST,"(");
-	stateMatrix[0][')'] = State(0,false,PAREN_T,RIGHTPAREN_ST,")");
+	stateMatrix[0]['*'] = State(false,ARITHM_T,MULTIPLY_ST,"*");
+	stateMatrix[0]['-'] = State(false,ARITHM_T,SUBSTRACT_ST,"-");
+	stateMatrix[0]['+'] = State(false,ARITHM_T,ADD_ST,"+");
+	stateMatrix[0]['.'] = State(false,DOT_T,NONE_ST,".");
+	stateMatrix[0][','] = State(false,COMMA_T,NONE_ST,",");
+	stateMatrix[0]['('] = State(false,PAREN_T,LEFTPAREN_ST,"(");
+	stateMatrix[0][')'] = State(false,PAREN_T,RIGHTPAREN_ST,")");
 	
 	//Read "="
 	int firstEqualStateNum = ++nonFinalStateNum;//State with number zero is reserved for the starting state
 	stateMatrix[0]['='] = State(firstEqualStateNum);//Read first equal
 	for(int i = 0;i<MAX_CHAR;++i)
-		stateMatrix[firstEqualStateNum][i] = State(0,true,ASSIGNMENT_T,NONE_ST,"=");
-	stateMatrix[firstEqualStateNum]['=']=State(0,false,ARITHM_T,EQUAL_ST,"==");
+	{
+		if(i == '=')
+				stateMatrix[firstEqualStateNum]['=']=State(false,ARITHM_T,EQUAL_ST,"==");
+		else
+			stateMatrix[firstEqualStateNum][i] = State(true,ASSIGNMENT_T,NONE_ST,"=");
+	}
 
 	//Read "<"
 	int firstLessThanStateNum = ++nonFinalStateNum;
 	stateMatrix[0]['<'] = State(firstLessThanStateNum);
 	for(int i = 0;i<MAX_CHAR;++i)
-		stateMatrix[firstLessThanStateNum][i] = State(0,true,RELOP_T,LESS_ST,"<");
-	stateMatrix[firstLessThanStateNum]['<'] = State(0,false,BITWISE_T,BITLEFT_ST,"<<");
-	stateMatrix[firstLessThanStateNum]['>'] = State(0,false,RELOP_T,UNEQUAL_ST,"<>");
-	stateMatrix[firstLessThanStateNum]['='] = State(0,false,RELOP_T,LESSOREQUAL_ST,"<=");
+	{
+		if(i == '<')
+			stateMatrix[firstLessThanStateNum]['<'] = State(false,BITWISE_T,BITLEFT_ST,"<<");
+		else if(i=='>')
+			stateMatrix[firstLessThanStateNum]['>'] = State(false,RELOP_T,UNEQUAL_ST,"<>");
+		else if (i == '=')
+			stateMatrix[firstLessThanStateNum]['='] = State(false,RELOP_T,LESSOREQUAL_ST,"<=");
+		else
+			stateMatrix[firstLessThanStateNum][i] = State(true,RELOP_T,LESS_ST,"<");
+	}
 
 	//Read ">"
 	int firstGreaterThanStateNum = ++nonFinalStateNum;
 	stateMatrix[0]['>']=State(firstGreaterThanStateNum);
 	for(int i = 0;i<MAX_CHAR;++i)
-		stateMatrix[firstGreaterThanStateNum][i] = State(0,true,RELOP_T,LESS_ST,">");
-	stateMatrix[firstLessThanStateNum]['<'] = State(0,false,BITWISE_T,BITRIGHT_ST,">>");
-	stateMatrix[firstLessThanStateNum]['='] = State(0,false,RELOP_T,GREATEROREQUAL_ST,">=");
+	{
+		if(i == '>')
+			stateMatrix[firstLessThanStateNum]['<'] = State(false,BITWISE_T,BITRIGHT_ST,">>");
+		else if (i == '=')
+			stateMatrix[firstLessThanStateNum]['='] = State(false,RELOP_T,GREATEROREQUAL_ST,">=");
+		else
+			stateMatrix[firstGreaterThanStateNum][i] = State(true,RELOP_T,LESS_ST,">");
+	}
 	
 	//Read digit
 	int firstDigitStateNum = ++nonFinalStateNum;
 	string digits = "0123456789";
-	for(int i = 0;i<digits.length;++i)
+	for(int i = 0;i<digits.length();++i)
 	{
 		stateMatrix[0][digits[i]] = State(firstDigitStateNum);
-		stateMatrix[firstDigitStateNum][digits[i]] = State(firstDigitStateNum);
 	}
+	for(int i = 0;i<MAX_CHAR;++i)
+	{
+		if(i<= '9' && i >='0')
+			stateMatrix[firstDigitStateNum][i] = State(firstDigitStateNum);
+		else
+			stateMatrix[firstDigitStateNum][i] = State(true,INTEGER_T,NONE_ST,"int");
+	}
+
+	//Read string
+	int leftQuoteStateNum = ++nonFinalStateNum;
+	stateMatrix[0]['\''] = State(leftQuoteStateNum);
+	for(int i =0;i<MAX_CHAR;++i)
+	{
+		if(i == '\'')
+			stateMatrix[leftQuoteStateNum][i] = State(false,STRING_T,NONE_ST,"string");
+		else if (i == EOF_INDEX)
+			stateMatrix[leftQuoteStateNum][i] = State(ERROR,"Single quote expected at the end of string.");
+		else
+			stateMatrix[leftQuoteStateNum][i]=State(leftQuoteStateNum);
+	}
+
+	//Read double slash started comment
+	int firstSlashStateNum = ++nonFinalStateNum;
+	int secondSlashStateNum = ++nonFinalStateNum;
+	stateMatrix[0]['/']=State(firstSlashStateNum);
+	for(int i = 0;i<MAX_CHAR;++i)
+	{
+		if(i == '/')
+			stateMatrix[firstSlashStateNum][i] = State(secondSlashStateNum);
+		else 
+			stateMatrix[firstSlashStateNum][i] = State(ERROR,"Comment should be started by double slashes.");
+	}
+	for(int i = 0;i<MAX_CHAR;i++)
+	{
+		if(i == '\r')
+			stateMatrix[secondSlashStateNum][i] = State(0);
+		else
+			stateMatrix[secondSlashStateNum][i] = State(secondSlashStateNum,CLEAR_BUFFER);
+	}
+
+	//Read identifier
+	int firstLetterStateNum = ++nonFinalStateNum;
+	string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+	for(int i = 0;i<letters.length();++i)
+		stateMatrix[0][letters[i]]=State(firstLetterStateNum);
+	for(int i = 0;i<MAX_CHAR;++i)
+	{
+		if(('A'<=i&&i<='z')||('0'<=i&&i<='9')||(i=='_'))
+			stateMatrix[firstLetterStateNum][i] = State(firstLetterStateNum);
+		else 
+			stateMatrix[firstLetterStateNum][i] = State(true,IDENTIFIER_T,NONE_ST,"identifier");
+	}
+
 }
 
 void ScannerClass::printStateMatrix()
@@ -180,6 +250,7 @@ void ScannerClass::printStateMatrix()
 
 void ScannerClass::close()
 {
+	fileManager.closeSourceProgram();
 	for(int i = 0;i<MAX_STATE;i++)
 		for(int j = 0;j<MAX_CHAR;j++)
 		{

@@ -12,8 +12,8 @@
 #ifndef _scanner
 #define _scanner
 
-#define EMPTY_T -1
-#define EMPTY_ST -2
+#define EMPTY_T -10
+#define EMPTY_ST -11
 #define EMPTY_LEXEME ""
 
 #define NONE_ST 1
@@ -52,10 +52,11 @@
 
 #define MAX_STATE 100
 #define MAX_CHAR 129//EOF is -1. We store it as 128.
+#define EOF_INDEX 128
 
 #define INVALID_STATE -1
 
-enum Action {NO_ACTION,PUSH_BACK,ACCEPT,ERROR,WARNING};
+enum Action {NO_ACTION,PUSH_BACK,ACCEPT,ERROR,WARNING,CLEAR_BUFFER};
 
 class TokenClass
 { 
@@ -74,7 +75,9 @@ class State
 public:
 	State();
 	State(int nextStateNum);
-	State(int nextStateNum,bool needPushBack,int type,int subtype,string lexeme);
+	State(bool needPushBack,int type,int subtype,string lexeme);
+	State(Action errorOrWarningAction, string message);
+	State(int nextStateNum,Action sideAction);
 	friend ostream& operator<<(std::ostream &strm, const State &s);
 	int nextStateNum;
 	Action action;
@@ -93,7 +96,7 @@ public:
 	State stateMatrix[MAX_STATE][MAX_CHAR];
 	void printStateMatrix();
 private:
-	//fileManagerClass fileManager;
+	fileManagerClass fileManager;
 	string lexeme;
 	void buildStateMatrix();
 }  ;
