@@ -4,13 +4,13 @@
 
 //The definitions of these routines can be found in scanner.cpp
 
+#ifndef _scanner
+#define _scanner
+
 #include "filemngr.h"
 #include <iostream>
 #include <fstream>
 #include <string>
-
-#ifndef _scanner
-#define _scanner
 
 #define EMPTY_T -10
 #define EMPTY_ST -11
@@ -47,6 +47,7 @@
 #define IDENTIFIER_T 100
 #define INTEGER_T 110
 #define ASSIGNMENT_T 120
+#define EOF_T 130
 
 #define MAX_STATE 100
 #define MAX_CHAR 129//EOF is -1. We store it as 128.
@@ -54,7 +55,7 @@
 
 #define INVALID_STATE -1
 
-enum Action {NO_ACTION,PUSH_BACK,ACCEPT,ERROR,WARNING,CLEAR_BUFFER,CHECK_COMPILER_DIRECTIVE};
+enum Action {NO_ACTION,ACCEPT,ERROR,WARNING,CLEAR_BUFFER,CHECK_COMPILER_DIRECTIVE};
 
 class TokenClass
 { 
@@ -73,8 +74,9 @@ class State
 public:
 	State();
 	State(int nextStateNum);
+	State(int nextStateNum,bool needPushBack);
 	State(bool needPushBack,int type,int subtype,string lexeme);
-	State(Action errorOrWarningAction, string message);
+	State(string errorMessage);
 	State(int nextStateNum,Action sideAction);
 	friend ostream& operator<<(std::ostream &strm, const State &s);
 	int nextStateNum;
@@ -95,7 +97,6 @@ public:
 	void printStateMatrix();
 private:
 	fileManagerClass fileManager;
-	string lexeme;
 	void buildStateMatrix();
 }  ;
 

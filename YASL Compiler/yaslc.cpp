@@ -23,9 +23,15 @@ int main(int argc, char* argv[])
     theFile.closeSourceProgram();
 	*/
 
-
 	ScannerClass scanner;
-	scanner.printStateMatrix();
+	TokenClass token = scanner.getToken();
+	while(token.type != EOF_T)
+	{
+		cout<<TokenClass::tokenIntToString(token.type)<<" "<<TokenClass::tokenIntToString(token.subtype)<<" "<<token.lexeme<<endl;
+		token = scanner.getToken();
+	}
+
+	//scanner.printStateMatrix();
 	scanner.close();
 	//char c = ' ';
 	//cout<<(int)c;
