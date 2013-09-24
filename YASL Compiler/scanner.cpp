@@ -65,12 +65,8 @@ string TokenClass::tokenIntToString(int tokenNameAsInt)
 			return "DOT_T";
 		case TILDE_T:
 			return "TILDE_T";
-		case COMMENT_T:
-			return "COMMENT_T";
 		case STRING_T:
 			return "STRING_T";
-		case COMPILERDIR_T:
-			return "COMPILERDIR_T";
 		case IDENTIFIER_T:
 			return "IDENTIFIER_T";
 		case INTEGER_T:
@@ -230,6 +226,56 @@ void ScannerClass::buildStateMatrix()
 			stateMatrix[firstLetterStateNum][i] = State(firstLetterStateNum);
 		else 
 			stateMatrix[firstLetterStateNum][i] = State(true,IDENTIFIER_T,NONE_ST,"identifier");
+	}
+
+	//Read comment enclosed in brace
+	int leftBraceStateNum = ++nonFinalStateNum;
+	int secondDollarStateNum = ++nonFinalStateNum;
+	int thirdLetterStateNum = ++nonFinalStateNum;
+	int fourthAddMinusStateNum = ++nonFinalStateNum;
+	int bracedCommentStateNum = ++nonFinalStateNum;
+	stateMatrix[0]['{'] = State(leftBraceStateNum);
+	for(int i = 0;i<MAX_CHAR;++i)
+	{
+		if(i == '}')
+			stateMatrix[leftBraceStateNum][i] = State(0);
+		else if(i == '$')
+			stateMatrix[leftBraceStateNum][i] = State(secondDollarStateNum);
+		else if(i == EOF_INDEX)
+			stateMatrix[leftBraceStateNum][i] = State(ERROR,"Comment or compiler directive needs to be ended with a right brace.");
+		else 
+			stateMatrix[leftBraceStateNum][i] = State(bracedCommentStateNum);
+
+		if(i == '}')
+			stateMatrix[secondDollarStateNum][i] = State(0);
+		else if (i <= 'z' && i >= 'A')
+			stateMatrix[secondDollarStateNum][i] = State(thirdLetterStateNum);
+		else if (i == EOF_INDEX)
+			stateMatrix[secondDollarStateNum][i] = State(ERROR,"Comment or compiler directive needs to be ended with a right brace.");
+		else
+			stateMatrix[secondDollarStateNum][i] = State(bracedCommentStateNum);
+
+		if(i == '}')
+			stateMatrix[thirdLetterStateNum][i] = State(0);
+		else if(i == '+' ||i == '-')
+			stateMatrix[thirdLetterStateNum][i] = State(fourthAddMinusStateNum);
+		else if (i == EOF_INDEX)
+			stateMatrix[thirdLetterStateNum][i] = State(ERROR,"Comment or compiler directive needs to be ended with a right brace.");
+		else 
+			stateMatrix[thirdLetterStateNum][i] = State(bracedCommentStateNum);
+
+		if(i == '}')
+			stateMatrix[fourthAddMinusStateNum][i] = State(0,CHECK_COMPILER_DIRECTIVE);
+		else if(i == EOF_INDEX)
+			stateMatrix[fourthAddMinusStateNum][i] = State(ERROR,"Comment or compiler directive needs to be ended with a right brace.");
+		else stateMatrix[fourthAddMinusStateNum][i] =State(bracedCommentStateNum);
+
+		if(i == '}')
+			stateMatrix[bracedCommentStateNum][i] = State(0);
+		if(i == EOF_INDEX)
+			stateMatrix[bracedCommentStateNum][i] = State(ERROR,"Comment or compiler directive needs to be ended with a right brace.");
+		else
+			stateMatrix[bracedCommentStateNum][i] = State(bracedCommentStateNum,CLEAR_BUFFER);
 	}
 
 }

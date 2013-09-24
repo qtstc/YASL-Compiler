@@ -43,12 +43,10 @@
 #define COMMA_T 60
 #define DOT_T 70
 #define TILDE_T 80
-#define COMMENT_T 90
-#define STRING_T 100
-#define COMPILERDIR_T 110
-#define IDENTIFIER_T 120
-#define INTEGER_T 130
-#define ASSIGNMENT_T 140
+#define STRING_T 90
+#define IDENTIFIER_T 100
+#define INTEGER_T 110
+#define ASSIGNMENT_T 120
 
 #define MAX_STATE 100
 #define MAX_CHAR 129//EOF is -1. We store it as 128.
@@ -56,7 +54,7 @@
 
 #define INVALID_STATE -1
 
-enum Action {NO_ACTION,PUSH_BACK,ACCEPT,ERROR,WARNING,CLEAR_BUFFER};
+enum Action {NO_ACTION,PUSH_BACK,ACCEPT,ERROR,WARNING,CLEAR_BUFFER,CHECK_COMPILER_DIRECTIVE};
 
 class TokenClass
 { 
