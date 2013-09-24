@@ -26,6 +26,7 @@ int main(int argc, char* argv[])
 
 	ScannerClass scanner;
 	scanner.printStateMatrix();
+	scanner.close();
 	//char c = ' ';
 	//cout<<(int)c;
 	cin.get();

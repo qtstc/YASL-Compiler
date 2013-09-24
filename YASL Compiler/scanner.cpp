@@ -13,21 +13,87 @@ TokenClass::TokenClass(int type, int subtype, string lexeme):type(type),subtype(
 
 State::State():nextStateNum(INVALID_STATE),action(NO_ACTION),token(NULL),actionInfo(NULL),needPushBack(false){}
 
-State::State(int nextStateNum):nextStateNum(nextStateNum),action(NO_ACTION),token(&TokenClass(0,0,"")),actionInfo(NULL),needPushBack(false){}
+State::State(int nextStateNum):nextStateNum(nextStateNum),action(NO_ACTION),token(NULL),actionInfo(NULL),needPushBack(false){}
 
-State::State(int nextStateNum,bool needPushBack,int type,int subtype,string lexeme):nextStateNum(nextStateNum),needPushBack(needPushBack),action(ACCEPT),token(&TokenClass(type,subtype,lexeme)),actionInfo(NULL){}
+State::State(int nextStateNum,bool needPushBack,int type,int subtype,string lexeme):nextStateNum(nextStateNum),needPushBack(needPushBack),token(new TokenClass(type,subtype,lexeme)),action(ACCEPT),actionInfo(NULL)
+{}
+
+string State::tokenIntToString(int tokenNameAsInt)
+{
+	switch(tokenNameAsInt)
+	{
+		case NONE_ST:
+			return "NONE_ST";
+		case ARITHM_T:
+			return "ARITHM_T";
+		case ADD_ST:
+			return "ADD_ST";
+		case SUBSTRACT_ST:
+			return "SUBSTRACT_ST";
+		case MULTIPLY_ST:
+			return "MULTIPLY_ST";
+			
+		case RELOP_T:
+			return "RELOP_T";
+		case EQUAL_ST:
+			return "EQUAL_ST";
+		case UNEQUAL_ST:
+			return "UNEQUAL_ST";
+		case GREATER_ST:
+			return "GREATER_ST";
+		case GREATEROREQUAL_ST:
+			return "GREATEROREQUAL_ST";
+		case LESS_ST:
+			return "LESS_ST";
+		case LESSOREQUAL_ST:
+			return "LESSOREQUAL_ST";
+	
+		case BITWISE_T:
+			return "BITWISE_T";
+		case BITLEFT_ST:
+			return "BITLEFT_ST";
+		case BITRIGHT_ST:
+			return "BITRIGHT_ST";
+
+		case PAREN_T:
+			return "PAREN_T";
+		case LEFTPAREN_ST:
+			return "LEFTPAREN_ST";
+		case RIGHTPAREN_ST:
+			return "RIGHTPAREN_ST";
+
+		case SEMICOLON_T:
+			return "SEMICOLON_T";
+		case COMMA_T:
+			return "COMMA_T";
+		case DOT_T:
+			return "DOT_T";
+		case TILDE_T:
+			return "TILDE_T";
+		case COMMENT_T:
+			return "COMMENT_T";
+		case STRING_T:
+			return "STRING_T";
+		case COMPILERDIR_T:
+			return "COMPILERDIR_T";
+		case IDENTIFIER_T:
+			return "IDENTIFIER_T";
+		case INTEGER_T:
+			return "INTEGER_T";
+		case ASSIGNMENT_T:
+			return "ASSIGNMENT_T";
+		default:
+			return "Error, not a type";
+	}
+
+}
 
 std::ostream& operator<<(std::ostream &strm, const State &s) {
-	string tokenString = "NULL";
 	if(s.token != NULL)
 	{
-		tokenString = s.token->type;
-		tokenString += " ";
-		tokenString += s.token->subtype;
-		tokenString += " ";
-		tokenString += s.token->lexeme;
+		return  strm <<"{"<< s.nextStateNum <<"}"<<State::tokenIntToString(s.token->type)<<" "<<State::tokenIntToString(s.token->subtype)<<" "<<s.token->lexeme;
 	}
-	return strm <<"("<< s.nextStateNum <<")"<<tokenString;
+	return strm <<"{"<< s.nextStateNum <<"}"<<"NULL";
 }
 
 
@@ -102,4 +168,14 @@ void ScannerClass::printStateMatrix()
 		myfile<<"\n";
 	}
 	myfile.close();
+}
+
+void ScannerClass::close()
+{
+	for(int i = 0;i<MAX_STATE;i++)
+		for(int j = 0;j<MAX_CHAR;j++)
+		{
+			delete stateMatrix[i][j].actionInfo;
+			delete stateMatrix[i][j].token;
+		}
 }
