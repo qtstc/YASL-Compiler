@@ -1,11 +1,12 @@
 //Tao Qian
 //This file contains implementations of the 
-//ScannerClass and TokenClass
+//ScannerClass, TokenClass and State class.
 
 //The class header is found in scanner.h
 
 #include "stdafx.h"  // Required for visual studio to work correctly
 #include "scanner.h"
+#include <string.h>
 
 TokenClass::TokenClass():type(EMPTY_T),subtype(EMPTY_ST),lexeme(EMPTY_LEXEME){}
 
@@ -15,69 +16,84 @@ string TokenClass::tokenIntToString(int tokenNameAsInt)
 {
 	switch(tokenNameAsInt)
 	{
-		case NONE_ST:
-			return "NONE_ST";
-		case ADDOP_T:
-			return "ADDOP_T";
-		case ADD_ST:
-			return "ADD_ST";
-		case SUBSTRACT_ST:
-			return "SUBSTRACT_ST";
+	case EMPTY_T:
+		return "EMPTY_T";
+	case EMPTY_ST:
+		return "EMPTY_ST";
 
-		case MULOP_T:
-			return "MULOP_T";
-		case MULTIPLY_ST:
-			return "MULTIPLY_ST";
-			
-		case RELOP_T:
-			return "RELOP_T";
-		case EQUAL_ST:
-			return "EQUAL_ST";
-		case UNEQUAL_ST:
-			return "UNEQUAL_ST";
-		case GREATER_ST:
-			return "GREATER_ST";
-		case GREATEROREQUAL_ST:
-			return "GREATEROREQUAL_ST";
-		case LESS_ST:
-			return "LESS_ST";
-		case LESSOREQUAL_ST:
-			return "LESSOREQUAL_ST";
-	
-		case BITWISE_T:
-			return "BITWISE_T";
-		case BITLEFT_ST:
-			return "BITLEFT_ST";
-		case BITRIGHT_ST:
-			return "BITRIGHT_ST";
+	case NONE_ST:
+		return "NONE_ST";
+	case ADDOP_T:
+		return "ADDOP_T";
+	case ADD_ST:
+		return "ADD_ST";
+	case SUBSTRACT_ST:
+		return "SUBSTRACT_ST";
+	case OR_ST:
+		return "OR_ST";
 
-		case LEFTPAREN_T:
-			return "LEFTPAREN_T";
-		case RIGHTPAREN_T:
-			return "RIGHTPAREN_T";
+	case MULOP_T:
+		return "MULOP_T";
+	case MULTIPLY_ST:
+		return "MULTIPLY_ST";
+	case AND_ST:
+		return "AND_ST";
+	case DIV_ST:
+		return "DIV_ST";
+	case MOD_ST:
+		return "MOD_ST";
 
-		case SEMICOLON_T:
-			return "SEMICOLON_T";
-		case COMMA_T:
-			return "COMMA_T";
-		case DOT_T:
-			return "DOT_T";
-		case TILDE_T:
-			return "TILDE_T";
-		case STRING_T:
-			return "STRING_T";
-		case IDENTIFIER_T:
-			return "IDENTIFIER_T";
-		case INTEGER_T:
-			return "INTEGER_T";
-		case ASSIGNMENT_T:
-			return "ASSIGNMENT_T";
-		case AMPERSAND_T:
-			return "AMPERSAND_T";
-		case EOF_T:
-			return "EOF_T";
-		default:
-			return "Error";
+	case RELOP_T:
+		return "RELOP_T";
+	case EQUAL_ST:
+		return "EQUAL_ST";
+	case UNEQUAL_ST:
+		return "UNEQUAL_ST";
+	case GREATER_ST:
+		return "GREATER_ST";
+	case GREATEROREQUAL_ST:
+		return "GREATEROREQUAL_ST";
+	case LESS_ST:
+		return "LESS_ST";
+	case LESSOREQUAL_ST:
+		return "LESSOREQUAL_ST";
+
+	case BITWISE_T:
+		return "BITWISE_T";
+	case BITLEFT_ST:
+		return "BITLEFT_ST";
+	case BITRIGHT_ST:
+		return "BITRIGHT_ST";
+
+	case LEFTPAREN_T:
+		return "LEFTPAREN_T";
+	case RIGHTPAREN_T:
+		return "RIGHTPAREN_T";
+
+	case SEMICOLON_T:
+		return "SEMICOLON_T";
+	case COMMA_T:
+		return "COMMA_T";
+	case DOT_T:
+		return "DOT_T";
+	case TILDE_T:
+		return "TILDE_T";
+	case STRING_T:
+		return "STRING_T";
+	case IDENTIFIER_T:
+		return "IDENTIFIER_T";
+	case INTEGER_T:
+		return "INTEGER_T";
+	case ASSIGNMENT_T:
+		return "ASSIGNMENT_T";
+	case AMPERSAND_T:
+		return "AMPERSAND_T";
+	case KEYWORD_T:
+		return "KEYWORD_T";
+	case EOF_T:
+		return "EOF_T";
+	default:
+		return "Token index not recognized";
 	}
 }
 
@@ -111,58 +127,96 @@ TokenClass ScannerClass::getToken()
 {
 	int currentStateNum = 0;
 	int c;
-	string currentLexeme="";
+	string currentLexeme;
 	do
 	{
+		//First clear the buffer if it is a new state.
+		if(currentStateNum == 0)
+			currentLexeme = "";
+
 		c = (int)fileManager.getNextChar();
-		if(c == EOF)//Because EOF(-1) is not a valid index, we need to change it before use it in the matrix.
+		if(c == EOF)//Because EOF(-1) is not a valid index, we need to change it before using it in the matrix.
 			c = EOF_INDEX;
 
+		if(c >= MAX_CHAR)//If the char read is not within the range.
+			return TokenClass(EMPTY_T,EMPTY_ST,"Illegal symbol: "+c);
 		State s = stateMatrix[currentStateNum][c];//Get the next state.
-		if(s.nextStateNum == INVALID_STATE)//If state is invalid
-		{
-			cout<<"Invalid state"<<endl;
-			return TokenClass(EOF_T,NONE_ST,"error");
-		}
-
-		if(s.nextStateNum == EOF_INDEX)//If reached EOF
-		{
-			cout<<"EOF"<<endl;
+		if(s.nextStateNum == INVALID_STATE)//If state is invalid, e.g. the char sequence is not recognized.
+			return TokenClass(EMPTY_T,EMPTY_ST,"Invalid char sequence: "+(currentLexeme+(char)c));
+		if(s.nextStateNum == EOF_INDEX)//If reached EOF, in this case no action needs to be taken.
 			return TokenClass(EOF_T,NONE_ST,"EOF");
-		}
 
 		switch(s.action)
 		{
 		case NO_ACTION:
-			currentLexeme += c;
+			currentLexeme += c;//Store the current char.
 			break;
 		case ACCEPT:
+			{
 				if(!s.needPushBack)
 					currentLexeme += c;
 				else
 					fileManager.pushBack();
-				cout<<"accepted"<<endl;
+
+				int type = s.token->type;
+
+				if(type == INTEGER_T)//Check for interger length
+					if(currentLexeme.length() > 4)
+						return TokenClass(EMPTY_T,EMPTY_ST,"Integer can have at most four digits: "+currentLexeme);
+
+				if(type == STRING_T)//Check for string length
+					if(currentLexeme.length() > 52)
+						return TokenClass(EMPTY_T,EMPTY_ST,"String can have at most fifty characters: "+currentLexeme);
+
+				if(type == IDENTIFIER_T)//Check for identifier length
+				{
+					if(currentLexeme.length() > 12)
+						return TokenClass(EMPTY_T,EMPTY_ST,"Identifier can have at most twelve characters: "+currentLexeme);
+
+					//Here we check for the keywords
+					const char* cString = currentLexeme.c_str();
+					if(_strcmpi("or",cString)==0)
+						return TokenClass(ADDOP_T,OR_ST,currentLexeme);
+					if(_strcmpi("and",cString)==0)
+						return TokenClass(MULOP_T,AND_ST,currentLexeme);
+					if(_strcmpi("div",cString)==0)
+						return TokenClass(MULOP_T,DIV_ST,currentLexeme);
+					if(_strcmpi("mod",cString)==0)
+						return TokenClass(MULOP_T,MOD_ST,currentLexeme);
+
+					char* keywords[16]={"program","function","begin","end","if","then","else","while","do","cout","cin","endl","int","boolean","true","false"};
+					for(int i = 0;i<16;i++)
+						if(_strcmpi(keywords[i],cString)==0)
+							return TokenClass(KEYWORD_T,NONE_ST,currentLexeme);
+				}
+
 				return TokenClass(s.token->type,s.token->subtype,currentLexeme);
+			}
 		case WARNING:
-			cout<<"warning"<<endl;
+			cout<<"warning"<<endl;//Currently not used because no warning state is checked by the state matrix.
 			break;
 		case ERROR:
-			cout<<"error"<<endl;
-			return TokenClass(EOF_T,NONE_ST,"error");
+			{
+				if(s.actionInfo != NULL)
+					return TokenClass(EMPTY_T,EMPTY_ST,*s.actionInfo);
+				else //This else is only here as a double check. Normally an error message should be included.
+					return TokenClass(EMPTY_T,EMPTY_ST,"Error");
+			}
 		case CLEAR_BUFFER:
-			currentLexeme = "";
+			currentLexeme = "";//Clear buffer, for comments only.
 			break;
 		case CHECK_COMPILER_DIRECTIVE:
-			cout<<"compiler directive"<<endl;
+			currentLexeme+=c;
+			if(currentLexeme != "{$p+}" && currentLexeme != "{$p-}")
+				cout<<"Warning, compiler directive "+currentLexeme+" is undefined."<<endl;
 			break;
 		}
 
 		currentStateNum = s.nextStateNum;
-		if(currentStateNum == 0)
-			currentLexeme = "";
 	}
 	while(true);
 
+	//This should be unreachable
 	return TokenClass(EMPTY_T,EMPTY_ST,EMPTY_LEXEME);
 }
 
@@ -192,7 +246,7 @@ void ScannerClass::buildStateMatrix()
 	stateMatrix[0]['~'] = State(false,TILDE_T,NONE_ST,"~");
 	stateMatrix[0][';'] = State(false,SEMICOLON_T,NONE_ST,";");
 	stateMatrix[0]['&'] = State(false,AMPERSAND_T,NONE_ST,"&");
-	
+
 	//Read "="
 	int firstEqualStateNum = ++nonFinalStateNum;//State with number zero is reserved for the starting state
 	stateMatrix[0]['='] = State(firstEqualStateNum);//Read first equal
@@ -231,7 +285,7 @@ void ScannerClass::buildStateMatrix()
 		else
 			stateMatrix[firstGreaterThanStateNum][i] = State(true,RELOP_T,GREATER_ST,">");
 	}
-	
+
 	//Read digit
 	int firstDigitStateNum = ++nonFinalStateNum;
 	string digits = "0123456789";
@@ -254,6 +308,8 @@ void ScannerClass::buildStateMatrix()
 	{
 		if(i == '\'')
 			stateMatrix[leftQuoteStateNum][i] = State(false,STRING_T,NONE_ST,"string_lexeme");
+		else if(i=='\r'||i=='\n')
+			stateMatrix[leftQuoteStateNum][i] = State("String cannot be split across lines.");
 		else if (i == EOF_INDEX)
 			stateMatrix[leftQuoteStateNum][i] = State("Single quote expected at the end of string.");
 		else
@@ -359,9 +415,15 @@ void ScannerClass::printStateMatrix()
 	myfile.close();
 }
 
+int ScannerClass::getCurrentLine()
+{
+	return fileManager.numLinesProcessed();
+}
+
 void ScannerClass::close()
 {
 	fileManager.closeSourceProgram();
+	//Clear the memory used by the state matrix
 	for(int i = 0;i<MAX_STATE;i++)
 		for(int j = 0;j<MAX_CHAR;j++)
 		{

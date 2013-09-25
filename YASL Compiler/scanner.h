@@ -21,9 +21,13 @@
 #define ADDOP_T 10
 #define ADD_ST 11
 #define SUBSTRACT_ST 12
+#define OR_ST 13
 
 #define MULOP_T 20
 #define MULTIPLY_ST 21
+#define AND_ST 22
+#define DIV_ST 23
+#define MOD_ST 24
 
 #define RELOP_T 30
 #define EQUAL_ST 31
@@ -49,9 +53,10 @@
 #define INTEGER_T 130
 #define ASSIGNMENT_T 140
 #define AMPERSAND_T 150
-#define EOF_T 160
+#define KEYWORD_T 160
+#define EOF_T 170
 
-#define MAX_STATE 100
+#define MAX_STATE 16
 #define MAX_CHAR 129//EOF is -1. We store it as 128.
 #define EOF_INDEX 128
 
@@ -95,9 +100,10 @@ public:
 	ScannerClass();
 	TokenClass getToken();
 	void close();
-	State stateMatrix[MAX_STATE][MAX_CHAR];
 	void printStateMatrix();
+	int getCurrentLine();
 private:
+	State stateMatrix[MAX_STATE][MAX_CHAR];
 	fileManagerClass fileManager;
 	void buildStateMatrix();
 }  ;

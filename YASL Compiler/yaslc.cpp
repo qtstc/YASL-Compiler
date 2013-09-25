@@ -13,28 +13,18 @@
 
 int main(int argc, char* argv[])
 {   
-	/*
-	fileManagerClass theFile;     //Define the sourceprogram object
-    char ch;
-
-	theFile.setPrintStatus(true);
-    while ((ch = theFile.getNextChar()) != EOF){}
-	cout<<"YASLC-TQ has just compiled "<<theFile.numLinesProcessed()<< " lines of code.";
-    theFile.closeSourceProgram();
-	*/
-
 	ScannerClass scanner;
 	TokenClass token = scanner.getToken();
-	while(token.type != EOF_T)
+	while(token.type != EOF_T && token.type != EMPTY_T)//Check for EOF and error
 	{
-		cout<<TokenClass::tokenIntToString(token.type)<<" "<<TokenClass::tokenIntToString(token.subtype)<<" "<<token.lexeme<<endl;
+		cout<<token.lexeme<<"\t\t"<<TokenClass::tokenIntToString(token.type)<<"\t\t"<<TokenClass::tokenIntToString(token.subtype)<<endl;
 		token = scanner.getToken();
 	}
-
+	if(token.type == EMPTY_T)//If there is an error
+		cout<<"Compilation error at line "<<scanner.getCurrentLine()<<". ";
+	cout<<token.lexeme<<endl;
 	//scanner.printStateMatrix();
 	scanner.close();
-	//char c = ' ';
-	//cout<<(int)c;
 	cin.get();
 
     return (0);
