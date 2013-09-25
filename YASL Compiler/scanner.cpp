@@ -120,7 +120,7 @@ std::ostream& operator<<(std::ostream &strm, const State &s) {
 
 ScannerClass::ScannerClass()
 {
-	buildStateMatrix();
+	buildStateMatrixCompact();
 }
 
 TokenClass ScannerClass::getToken()
@@ -400,6 +400,165 @@ void ScannerClass::buildStateMatrix()
 			stateMatrix[bracedCommentStateNum][i] = State(bracedCommentStateNum,CLEAR_BUFFER);
 	}
 }
+
+void ScannerClass::buildStateMatrixCompact()
+{
+	int nonFinalStateNum = 0;
+
+	for(int i = 0;i<MAX_STATE;++i)
+		for(int j = 0;j<MAX_CHAR;++j)
+			stateMatrix[i][j] = State();
+
+	//Read carriage return and whitespace at state 0 lead to 0
+	State zeroState(0);
+	char whitespaces[6] = {' ','\t','\v','\f','\r','\n'};
+	for(int i = 0;i<6;++i)
+		stateMatrix[0][whitespaces[i]]=zeroState;
+	stateMatrix[0][EOF_INDEX] = State(EOF_INDEX);//End of file indicator
+
+	//Read *-+.,()~;& goes to the respective final state with action ACCEPT
+	stateMatrix[0]['*'] = State(false,MULOP_T,MULTIPLY_ST,"*");
+	stateMatrix[0]['-'] = State(false,ADDOP_T,SUBSTRACT_ST,"-");
+	stateMatrix[0]['+'] = State(false,ADDOP_T,ADD_ST,"+");
+	stateMatrix[0]['.'] = State(false,DOT_T,NONE_ST,".");
+	stateMatrix[0][','] = State(false,COMMA_T,NONE_ST,",");
+	stateMatrix[0]['('] = State(false,LEFTPAREN_T,NONE_ST,"(");
+	stateMatrix[0][')'] = State(false,RIGHTPAREN_T,NONE_ST,")");
+	stateMatrix[0]['~'] = State(false,TILDE_T,NONE_ST,"~");
+	stateMatrix[0][';'] = State(false,SEMICOLON_T,NONE_ST,";");
+	stateMatrix[0]['&'] = State(false,AMPERSAND_T,NONE_ST,"&");
+
+	//Read "="
+	int firstEqualStateNum = ++nonFinalStateNum;//State with number zero is reserved for the starting state
+	stateMatrix[0]['='] = State(firstEqualStateNum);//Read first equal
+	//Read "<"
+	int firstLessThanStateNum = ++nonFinalStateNum;
+	stateMatrix[0]['<'] = State(firstLessThanStateNum);
+	//Read ">"
+	int firstGreaterThanStateNum = ++nonFinalStateNum;
+	stateMatrix[0]['>']=State(firstGreaterThanStateNum);
+	//Read digit
+	int firstDigitStateNum = ++nonFinalStateNum;
+	string digits = "0123456789";
+	for(int i = 0;i<digits.length();++i)
+	{
+		stateMatrix[0][digits[i]] = State(firstDigitStateNum);
+	}
+	//Read string
+	int leftQuoteStateNum = ++nonFinalStateNum;
+	stateMatrix[0]['\''] = State(leftQuoteStateNum);
+	//Read double slash started comment
+	int firstSlashStateNum = ++nonFinalStateNum;
+	int secondSlashStateNum = ++nonFinalStateNum;
+	stateMatrix[0]['/']=State(firstSlashStateNum);
+	//Read identifier
+	int firstLetterStateNum = ++nonFinalStateNum;
+		string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+	for(int i = 0;i<letters.length();++i)
+		stateMatrix[0][letters[i]]=State(firstLetterStateNum);
+	//Read comment enclosed in brace
+	int leftBraceStateNum = ++nonFinalStateNum;
+	int secondDollarStateNum = ++nonFinalStateNum;
+	int thirdLetterStateNum = ++nonFinalStateNum;
+	int fourthAddMinusStateNum = ++nonFinalStateNum;
+	int bracedCommentStateNum = ++nonFinalStateNum;
+	stateMatrix[0]['{'] = State(leftBraceStateNum);
+
+	for(int i = 0;i<MAX_CHAR;++i)
+	{
+		//"="
+		if(i == '=')
+			stateMatrix[firstEqualStateNum]['=']=State(false,RELOP_T,EQUAL_ST,"==");
+		else
+			stateMatrix[firstEqualStateNum][i] = State(true,ASSIGNMENT_T,NONE_ST,"=");
+		//"<"
+		if(i == '<')
+			stateMatrix[firstLessThanStateNum]['<'] = State(false,BITWISE_T,BITLEFT_ST,"<<");
+		else if(i=='>')
+			stateMatrix[firstLessThanStateNum]['>'] = State(false,RELOP_T,UNEQUAL_ST,"<>");
+		else if (i == '=')
+			stateMatrix[firstLessThanStateNum]['='] = State(false,RELOP_T,LESSOREQUAL_ST,"<=");
+		else
+			stateMatrix[firstLessThanStateNum][i] = State(true,RELOP_T,LESS_ST,"<");
+		//">"
+		if(i == '>')
+			stateMatrix[firstGreaterThanStateNum]['>'] = State(false,BITWISE_T,BITRIGHT_ST,">>");
+		else if (i == '=')
+			stateMatrix[firstGreaterThanStateNum]['='] = State(false,RELOP_T,GREATEROREQUAL_ST,">=");
+		else
+			stateMatrix[firstGreaterThanStateNum][i] = State(true,RELOP_T,GREATER_ST,">");
+		if(i<= '9' && i >='0')
+			stateMatrix[firstDigitStateNum][i] = State(firstDigitStateNum);
+		else
+			stateMatrix[firstDigitStateNum][i] = State(true,INTEGER_T,NONE_ST,"int_lexeme");
+		//string
+		if(i == '\'')
+			stateMatrix[leftQuoteStateNum][i] = State(false,STRING_T,NONE_ST,"string_lexeme");
+		else if(i=='\r'||i=='\n')
+			stateMatrix[leftQuoteStateNum][i] = State("String cannot be split across lines.");
+		else if (i == EOF_INDEX)
+			stateMatrix[leftQuoteStateNum][i] = State("Single quote expected at the end of string.");
+		else
+			stateMatrix[leftQuoteStateNum][i]=State(leftQuoteStateNum);
+		//double slash started comment
+		if(i == '/')
+			stateMatrix[firstSlashStateNum][i] = State(secondSlashStateNum);
+		else 
+			stateMatrix[firstSlashStateNum][i] = State("Comment should be started by double slashes.");
+		if(i == '\r'||i == '\n')
+			stateMatrix[secondSlashStateNum][i] = State(0);
+		else if(i == EOF_INDEX)
+			stateMatrix[secondSlashStateNum][i] = State(0,true);
+		else
+			stateMatrix[secondSlashStateNum][i] = State(secondSlashStateNum,CLEAR_BUFFER);
+		//Identifier
+		if(('A'<=i&&i<='z')||('0'<=i&&i<='9')||(i=='_'))
+			stateMatrix[firstLetterStateNum][i] = State(firstLetterStateNum);
+		else 
+			stateMatrix[firstLetterStateNum][i] = State(true,IDENTIFIER_T,NONE_ST,"identifier_lexeme");
+		//Braced comment
+		if(i == '}')
+			stateMatrix[leftBraceStateNum][i] = State(0);
+		else if(i == '$')
+			stateMatrix[leftBraceStateNum][i] = State(secondDollarStateNum);
+		else if(i == EOF_INDEX)
+			stateMatrix[leftBraceStateNum][i] = State("Comment or compiler directive needs to be ended with a right brace.");
+		else 
+			stateMatrix[leftBraceStateNum][i] = State(bracedCommentStateNum);
+
+		if(i == '}')
+			stateMatrix[secondDollarStateNum][i] = State(0);
+		else if (i <= 'z' && i >= 'A')
+			stateMatrix[secondDollarStateNum][i] = State(thirdLetterStateNum);
+		else if (i == EOF_INDEX)
+			stateMatrix[secondDollarStateNum][i] = State("Comment or compiler directive needs to be ended with a right brace.");
+		else
+			stateMatrix[secondDollarStateNum][i] = State(bracedCommentStateNum);
+
+		if(i == '}')
+			stateMatrix[thirdLetterStateNum][i] = State(0);
+		else if(i == '+' ||i == '-')
+			stateMatrix[thirdLetterStateNum][i] = State(fourthAddMinusStateNum);
+		else if (i == EOF_INDEX)
+			stateMatrix[thirdLetterStateNum][i] = State("Comment or compiler directive needs to be ended with a right brace.");
+		else 
+			stateMatrix[thirdLetterStateNum][i] = State(bracedCommentStateNum);
+
+		if(i == '}')
+			stateMatrix[fourthAddMinusStateNum][i] = State(0,CHECK_COMPILER_DIRECTIVE);
+		else if(i == EOF_INDEX)
+			stateMatrix[fourthAddMinusStateNum][i] = State("Comment or compiler directive needs to be ended with a right brace.");
+		else stateMatrix[fourthAddMinusStateNum][i] =State(bracedCommentStateNum);
+
+		if(i == '}')
+			stateMatrix[bracedCommentStateNum][i] = State(0);
+		else if(i == EOF_INDEX)
+			stateMatrix[bracedCommentStateNum][i] = State("Comment or compiler directive needs to be ended with a right brace.");
+		else
+			stateMatrix[bracedCommentStateNum][i] = State(bracedCommentStateNum,CLEAR_BUFFER);
+	}
+}
+
 
 void ScannerClass::printStateMatrix()
 {

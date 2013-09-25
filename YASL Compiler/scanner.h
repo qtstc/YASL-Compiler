@@ -11,59 +11,10 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include "general.h"
 
-#define EMPTY_T -10
-#define EMPTY_ST -11
-#define EMPTY_LEXEME ""
-
-#define NONE_ST 1
-
-#define ADDOP_T 10
-#define ADD_ST 11
-#define SUBSTRACT_ST 12
-#define OR_ST 13
-
-#define MULOP_T 20
-#define MULTIPLY_ST 21
-#define AND_ST 22
-#define DIV_ST 23
-#define MOD_ST 24
-
-#define RELOP_T 30
-#define EQUAL_ST 31
-#define UNEQUAL_ST 32
-#define GREATEROREQUAL_ST 33
-#define LESSOREQUAL_ST 34
-#define GREATER_ST 35
-#define LESS_ST 36
-
-#define BITWISE_T 40
-#define BITLEFT_ST 41
-#define BITRIGHT_ST 42
-
-#define LEFTPAREN_T 50
-#define RIGHTPAREN_T 60
-
-#define SEMICOLON_T 70
-#define COMMA_T 80
-#define DOT_T 90
-#define TILDE_T 100
-#define STRING_T 110
-#define IDENTIFIER_T 120
-#define INTEGER_T 130
-#define ASSIGNMENT_T 140
-#define AMPERSAND_T 150
-#define KEYWORD_T 160
-#define EOF_T 170
-
-#define MAX_STATE 16
-#define MAX_CHAR 129//EOF is -1. We store it as 128.
-#define EOF_INDEX 128
-
-#define INVALID_STATE -1
-
-enum Action {NO_ACTION,ACCEPT,ERROR,WARNING,CLEAR_BUFFER,CHECK_COMPILER_DIRECTIVE};
-
+//Class used to store a token.
+//The type and subtype should be constants defined in general.h.
 class TokenClass
 { 
 public:
@@ -72,10 +23,18 @@ public:
 	int type;
 	int subtype;
 	string lexeme;
-	static string tokenIntToString(int tokenNameAsInt);
+	static string tokenIntToString(int tokenNameAsInt);//Map type/subtype int to its string representation
 private:
 }  ;
 
+//State used in the state matrix.
+//It stores the action to be taken upon reading a new character.
+//Final states with the action ACCEPT also has a TokenClass instance,
+//which stores the information of the accepted token.
+//Notice that memory for actionInfo and token may be
+//allocated during initialization. The user of this class
+//is responsible for releasing the memory by calling 
+//delete on those two instances directly.
 class State
 {
 public:
@@ -94,18 +53,26 @@ public:
 private:
 };
 
+//Class that scans a file and output
+//tokens.
 class ScannerClass
 { 
 public:
 	ScannerClass();
+	//Return either a valid token or one with type EOF_T or EMPTY_T.
+	//The former indicates EOF and the later indicates error.
 	TokenClass getToken();
 	void close();
+	//Print out the state matrix for debugging.
+	//An csv file will be created in the root folder.
 	void printStateMatrix();
+	//Get the current line scanned.
 	int getCurrentLine();
 private:
 	State stateMatrix[MAX_STATE][MAX_CHAR];
 	fileManagerClass fileManager;
-	void buildStateMatrix();
+	void buildStateMatrix();//Method used to build the state matrix.
+	void buildStateMatrixCompact();//A slightly more efficient way to build the matrix. Less human-readable.
 }  ;
 
 
