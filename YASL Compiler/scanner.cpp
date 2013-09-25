@@ -17,12 +17,15 @@ string TokenClass::tokenIntToString(int tokenNameAsInt)
 	{
 		case NONE_ST:
 			return "NONE_ST";
-		case ARITHM_T:
-			return "ARITHM_T";
+		case ADDOP_T:
+			return "ADDOP_T";
 		case ADD_ST:
 			return "ADD_ST";
 		case SUBSTRACT_ST:
 			return "SUBSTRACT_ST";
+
+		case MULOP_T:
+			return "MULOP_T";
 		case MULTIPLY_ST:
 			return "MULTIPLY_ST";
 			
@@ -48,12 +51,10 @@ string TokenClass::tokenIntToString(int tokenNameAsInt)
 		case BITRIGHT_ST:
 			return "BITRIGHT_ST";
 
-		case PAREN_T:
-			return "PAREN_T";
-		case LEFTPAREN_ST:
-			return "LEFTPAREN_ST";
-		case RIGHTPAREN_ST:
-			return "RIGHTPAREN_ST";
+		case LEFTPAREN_T:
+			return "LEFTPAREN_T";
+		case RIGHTPAREN_T:
+			return "RIGHTPAREN_T";
 
 		case SEMICOLON_T:
 			return "SEMICOLON_T";
@@ -71,6 +72,8 @@ string TokenClass::tokenIntToString(int tokenNameAsInt)
 			return "INTEGER_T";
 		case ASSIGNMENT_T:
 			return "ASSIGNMENT_T";
+		case AMPERSAND_T:
+			return "AMPERSAND_T";
 		case EOF_T:
 			return "EOF_T";
 		default:
@@ -84,7 +87,7 @@ State::State(int nextStateNum):nextStateNum(nextStateNum),action(NO_ACTION),toke
 
 State::State(bool needPushBack,int type,int subtype,string lexeme):nextStateNum(0),needPushBack(needPushBack),token(new TokenClass(type,subtype,lexeme)),action(ACCEPT),actionInfo(NULL){}
 
-State::State(string errorMessage):nextStateNum(EOF_INDEX),action(ERROR),needPushBack(false),token(NULL),actionInfo(new string(errorMessage)){}
+State::State(string errorMessage):nextStateNum(0),action(ERROR),needPushBack(false),token(NULL),actionInfo(new string(errorMessage)){}
 
 State::State(int nextStateNum,Action sideAction):nextStateNum(nextStateNum),action(sideAction),needPushBack(false),token(NULL),actionInfo(NULL){}
 
@@ -173,19 +176,22 @@ void ScannerClass::buildStateMatrix()
 
 	//Read carriage return and whitespace at state 0 lead to 0
 	State zeroState(0);
-	stateMatrix[0]['\r'] = zeroState;
-	stateMatrix[0]['\n'] = zeroState;
-	stateMatrix[0][' '] = zeroState;
+	char whitespaces[6] = {' ','\t','\v','\f','\r','\n'};
+	for(int i = 0;i<6;++i)
+		stateMatrix[0][whitespaces[i]]=zeroState;
 	stateMatrix[0][EOF_INDEX] = State(EOF_INDEX);//End of file indicator
 
-	//Read *-+.,()~ goes to the respective final state with action ACCEPT
-	stateMatrix[0]['*'] = State(false,ARITHM_T,MULTIPLY_ST,"*");
-	stateMatrix[0]['-'] = State(false,ARITHM_T,SUBSTRACT_ST,"-");
-	stateMatrix[0]['+'] = State(false,ARITHM_T,ADD_ST,"+");
+	//Read *-+.,()~;& goes to the respective final state with action ACCEPT
+	stateMatrix[0]['*'] = State(false,MULOP_T,MULTIPLY_ST,"*");
+	stateMatrix[0]['-'] = State(false,ADDOP_T,SUBSTRACT_ST,"-");
+	stateMatrix[0]['+'] = State(false,ADDOP_T,ADD_ST,"+");
 	stateMatrix[0]['.'] = State(false,DOT_T,NONE_ST,".");
 	stateMatrix[0][','] = State(false,COMMA_T,NONE_ST,",");
-	stateMatrix[0]['('] = State(false,PAREN_T,LEFTPAREN_ST,"(");
-	stateMatrix[0][')'] = State(false,PAREN_T,RIGHTPAREN_ST,")");
+	stateMatrix[0]['('] = State(false,LEFTPAREN_T,NONE_ST,"(");
+	stateMatrix[0][')'] = State(false,RIGHTPAREN_T,NONE_ST,")");
+	stateMatrix[0]['~'] = State(false,TILDE_T,NONE_ST,"~");
+	stateMatrix[0][';'] = State(false,SEMICOLON_T,NONE_ST,";");
+	stateMatrix[0]['&'] = State(false,AMPERSAND_T,NONE_ST,"&");
 	
 	//Read "="
 	int firstEqualStateNum = ++nonFinalStateNum;//State with number zero is reserved for the starting state
@@ -193,7 +199,7 @@ void ScannerClass::buildStateMatrix()
 	for(int i = 0;i<MAX_CHAR;++i)
 	{
 		if(i == '=')
-				stateMatrix[firstEqualStateNum]['=']=State(false,ARITHM_T,EQUAL_ST,"==");
+			stateMatrix[firstEqualStateNum]['=']=State(false,RELOP_T,EQUAL_ST,"==");
 		else
 			stateMatrix[firstEqualStateNum][i] = State(true,ASSIGNMENT_T,NONE_ST,"=");
 	}
@@ -219,11 +225,11 @@ void ScannerClass::buildStateMatrix()
 	for(int i = 0;i<MAX_CHAR;++i)
 	{
 		if(i == '>')
-			stateMatrix[firstLessThanStateNum]['<'] = State(false,BITWISE_T,BITRIGHT_ST,">>");
+			stateMatrix[firstGreaterThanStateNum]['>'] = State(false,BITWISE_T,BITRIGHT_ST,">>");
 		else if (i == '=')
-			stateMatrix[firstLessThanStateNum]['='] = State(false,RELOP_T,GREATEROREQUAL_ST,">=");
+			stateMatrix[firstGreaterThanStateNum]['='] = State(false,RELOP_T,GREATEROREQUAL_ST,">=");
 		else
-			stateMatrix[firstGreaterThanStateNum][i] = State(true,RELOP_T,LESS_ST,">");
+			stateMatrix[firstGreaterThanStateNum][i] = State(true,RELOP_T,GREATER_ST,">");
 	}
 	
 	//Read digit

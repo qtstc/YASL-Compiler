@@ -18,36 +18,38 @@
 
 #define NONE_ST 1
 
-#define ARITHM_T 10
+#define ADDOP_T 10
 #define ADD_ST 11
 #define SUBSTRACT_ST 12
-#define MULTIPLY_ST 13
 
-#define RELOP_T 20
-#define EQUAL_ST 21
-#define UNEQUAL_ST 22
-#define GREATEROREQUAL_ST 23
-#define LESSOREQUAL_ST 24
-#define GREATER_ST 25
-#define LESS_ST 26
+#define MULOP_T 20
+#define MULTIPLY_ST 21
 
-#define BITWISE_T 30
-#define BITLEFT_ST 31
-#define BITRIGHT_ST 32
+#define RELOP_T 30
+#define EQUAL_ST 31
+#define UNEQUAL_ST 32
+#define GREATEROREQUAL_ST 33
+#define LESSOREQUAL_ST 34
+#define GREATER_ST 35
+#define LESS_ST 36
 
-#define PAREN_T 40
-#define LEFTPAREN_ST 41
-#define RIGHTPAREN_ST 42
+#define BITWISE_T 40
+#define BITLEFT_ST 41
+#define BITRIGHT_ST 42
 
-#define SEMICOLON_T 50
-#define COMMA_T 60
-#define DOT_T 70
-#define TILDE_T 80
-#define STRING_T 90
-#define IDENTIFIER_T 100
-#define INTEGER_T 110
-#define ASSIGNMENT_T 120
-#define EOF_T 130
+#define LEFTPAREN_T 50
+#define RIGHTPAREN_T 60
+
+#define SEMICOLON_T 70
+#define COMMA_T 80
+#define DOT_T 90
+#define TILDE_T 100
+#define STRING_T 110
+#define IDENTIFIER_T 120
+#define INTEGER_T 130
+#define ASSIGNMENT_T 140
+#define AMPERSAND_T 150
+#define EOF_T 160
 
 #define MAX_STATE 100
 #define MAX_CHAR 129//EOF is -1. We store it as 128.
