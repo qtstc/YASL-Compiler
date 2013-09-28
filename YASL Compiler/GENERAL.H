@@ -49,9 +49,30 @@ const int MAXCELLSPERSTRING = 82;  //80 characters as well as \n plus \0.
 #define IDENTIFIER_T 120
 #define INTEGER_T 130
 #define ASSIGNMENT_T 140
-#define AMPERSAND_T 150
-#define KEYWORD_T 160
-#define EOF_T 170
+#define AMPERSAND_T 150 
+
+//Here we define the type of keywords as the sume of KEYWORD_BASE and an integer.
+//The sequence of the keywords in this list should not be changed
+//because the number are mapped to an array.
+#define KEYWORD_BASE 160
+#define PROGRAM_T KEYWORD_BASE
+#define FUNCTION_T KEYWORD_BASE + 10
+#define BEGIN_T KEYWORD_BASE + 20
+#define END_T KEYWORD_BASE + 30
+#define IF_T KEYWORD_BASE + 40
+#define THEN_T KEYWORD_BASE + 50
+#define ELSE_T KEYWORD_BASE + 60
+#define WHILE_T KEYWORD_BASE + 70
+#define DO_T KEYWORD_BASE + 80
+#define COUT_T KEYWORD_BASE + 90
+#define CIN_T KEYWORD_BASE + 100
+#define ENDL_T KEYWORD_BASE + 110
+#define INT_T KEYWORD_BASE + 120
+#define BOOLEAN_T KEYWORD_BASE + 130
+#define TRUE_T KEYWORD_BASE + 140
+#define FALSE_T KEYWORD_BASE + 150
+
+#define EOF_T 320
 
 #define MAX_STATE 16
 #define MAX_CHAR 129//EOF is -1. We store it as 128.

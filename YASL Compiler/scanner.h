@@ -66,11 +66,10 @@ public:
 	//Print out the state matrix for debugging.
 	//An csv file will be created in the root folder.
 	void printStateMatrix();
-	//Get the current line scanned.
-	int getCurrentLine();
 private:
 	State stateMatrix[MAX_STATE][MAX_CHAR];
 	fileManagerClass fileManager;
+	void errorAndExit(string message);
 	void buildStateMatrix();//Method used to build the state matrix.
 	void buildStateMatrixCompact();//A slightly more efficient way to build the matrix. Less human-readable.
 }  ;

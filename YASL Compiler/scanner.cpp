@@ -88,8 +88,40 @@ string TokenClass::tokenIntToString(int tokenNameAsInt)
 		return "ASSIGNMENT_T";
 	case AMPERSAND_T:
 		return "AMPERSAND_T";
-	case KEYWORD_T:
-		return "KEYWORD_T";
+
+	case PROGRAM_T:
+		return "PROGRAM_T";
+	case FUNCTION_T:
+		return "FUNCTION_T";
+	case BEGIN_T:
+		return "BEGIN_T";
+	case END_T:
+		return "END_T";
+	case IF_T:
+		return "IF_T";
+	case THEN_T:
+		return "THEN_T";
+	case ELSE_T:
+		return "ELSE_T";
+	case WHILE_T:
+		return "WHILE_T";
+	case DO_T:
+		return "DO_T";
+	case COUT_T:
+		return "COUNT_T";
+	case CIN_T:
+		return "CIN_T";
+	case ENDL_T:
+		return "ENDL_T";
+	case INT_T:
+		return "INT_T";
+	case BOOLEAN_T:
+		return "BOOLEAN_T";
+	case TRUE_T:
+		return "TRUE_T";
+	case FALSE_T:
+		return "FALSE_T";
+
 	case EOF_T:
 		return "EOF_T";
 	default:
@@ -120,7 +152,7 @@ std::ostream& operator<<(std::ostream &strm, const State &s) {
 
 ScannerClass::ScannerClass()
 {
-	buildStateMatrixCompact();
+	buildStateMatrix();
 }
 
 TokenClass ScannerClass::getToken()
@@ -139,10 +171,16 @@ TokenClass ScannerClass::getToken()
 			c = EOF_INDEX;
 
 		if(c >= MAX_CHAR)//If the char read is not within the range.
-			return TokenClass(EMPTY_T,EMPTY_ST,"Illegal symbol: "+c);
+		{
+			errorAndExit(("Illegal symbol: "+c));
+			return TokenClass(EOF_T,NONE_ST,"EOF");
+		}
 		State s = stateMatrix[currentStateNum][c];//Get the next state.
 		if(s.nextStateNum == INVALID_STATE)//If state is invalid, e.g. the char sequence is not recognized.
-			return TokenClass(EMPTY_T,EMPTY_ST,"Invalid char sequence: "+(currentLexeme+(char)c));
+		{
+			errorAndExit("Invalid char sequence: "+(currentLexeme+(char)c));
+			return TokenClass(EOF_T,NONE_ST,"EOF");
+		}
 		if(s.nextStateNum == EOF_INDEX)//If reached EOF, in this case no action needs to be taken.
 			return TokenClass(EOF_T,NONE_ST,"EOF");
 
@@ -162,16 +200,25 @@ TokenClass ScannerClass::getToken()
 
 				if(type == INTEGER_T)//Check for interger length
 					if(currentLexeme.length() > 4)
-						return TokenClass(EMPTY_T,EMPTY_ST,"Integer can have at most four digits: "+currentLexeme);
+					{
+						errorAndExit("Integer can have at most four digits: "+currentLexeme);
+						return TokenClass(EOF_T,NONE_ST,"EOF");
+					}
 
 				if(type == STRING_T)//Check for string length
 					if(currentLexeme.length() > 52)
-						return TokenClass(EMPTY_T,EMPTY_ST,"String can have at most fifty characters: "+currentLexeme);
+					{
+						errorAndExit("String can have at most fifty characters: "+currentLexeme);
+						return TokenClass(EOF_T,NONE_ST,"EOF");
+					}
 
 				if(type == IDENTIFIER_T)//Check for identifier length
 				{
 					if(currentLexeme.length() > 12)
-						return TokenClass(EMPTY_T,EMPTY_ST,"Identifier can have at most twelve characters: "+currentLexeme);
+					{
+						errorAndExit("Identifier can have at most twelve characters: "+currentLexeme);
+						return TokenClass(EOF_T,NONE_ST,"EOF");
+					}
 
 					//Here we check for the keywords
 					const char* cString = currentLexeme.c_str();
@@ -184,10 +231,11 @@ TokenClass ScannerClass::getToken()
 					if(_strcmpi("mod",cString)==0)
 						return TokenClass(MULOP_T,MOD_ST,currentLexeme);
 
+					//Here list all keywords in an array. Their sequence should not be changed.
 					char* keywords[16]={"program","function","begin","end","if","then","else","while","do","cout","cin","endl","int","boolean","true","false"};
 					for(int i = 0;i<16;i++)
 						if(_strcmpi(keywords[i],cString)==0)
-							return TokenClass(KEYWORD_T,NONE_ST,currentLexeme);
+							return TokenClass(KEYWORD_BASE+i*10,NONE_ST,currentLexeme);
 				}
 
 				return TokenClass(s.token->type,s.token->subtype,currentLexeme);
@@ -198,16 +246,20 @@ TokenClass ScannerClass::getToken()
 		case ERROR:
 			{
 				if(s.actionInfo != NULL)
-					return TokenClass(EMPTY_T,EMPTY_ST,*s.actionInfo);
+					errorAndExit(*s.actionInfo);
 				else //This else is only here as a double check. Normally an error message should be included.
-					return TokenClass(EMPTY_T,EMPTY_ST,"Error");
+					errorAndExit("Error");
 			}
 		case CLEAR_BUFFER:
 			currentLexeme = "";//Clear buffer, for comments only.
 			break;
 		case CHECK_COMPILER_DIRECTIVE:
 			currentLexeme+=c;
-			if(currentLexeme != "{$p+}" && currentLexeme != "{$p-}")
+			if(currentLexeme != "{$p+}")
+				fileManager.setPrintStatus(true);
+			else if (currentLexeme != "{$p-}")
+				fileManager.setPrintStatus(false);
+			else
 				cout<<"Warning, compiler directive "+currentLexeme+" is undefined."<<endl;
 			break;
 		}
@@ -344,7 +396,7 @@ void ScannerClass::buildStateMatrix()
 		stateMatrix[0][letters[i]]=State(firstLetterStateNum);
 	for(int i = 0;i<MAX_CHAR;++i)
 	{
-		if(('A'<=i&&i<='z')||('0'<=i&&i<='9')||(i=='_'))
+		if(('A'<=i&&i<='Z')||('a'<=i&&i<='z')||('0'<=i&&i<='9')||(i=='_'))
 			stateMatrix[firstLetterStateNum][i] = State(firstLetterStateNum);
 		else 
 			stateMatrix[firstLetterStateNum][i] = State(true,IDENTIFIER_T,NONE_ST,"identifier_lexeme");
@@ -512,7 +564,7 @@ void ScannerClass::buildStateMatrixCompact()
 		else
 			stateMatrix[secondSlashStateNum][i] = State(secondSlashStateNum,CLEAR_BUFFER);
 		//Identifier
-		if(('A'<=i&&i<='z')||('0'<=i&&i<='9')||(i=='_'))
+		if(('A'<=i&&i<='Z')||('a'<=i&&i<='z')||('0'<=i&&i<='9')||(i=='_'))
 			stateMatrix[firstLetterStateNum][i] = State(firstLetterStateNum);
 		else 
 			stateMatrix[firstLetterStateNum][i] = State(true,IDENTIFIER_T,NONE_ST,"identifier_lexeme");
@@ -574,11 +626,6 @@ void ScannerClass::printStateMatrix()
 	myfile.close();
 }
 
-int ScannerClass::getCurrentLine()
-{
-	return fileManager.numLinesProcessed();
-}
-
 void ScannerClass::close()
 {
 	fileManager.closeSourceProgram();
@@ -589,4 +636,14 @@ void ScannerClass::close()
 			delete stateMatrix[i][j].actionInfo;
 			delete stateMatrix[i][j].token;
 		}
+}
+
+void ScannerClass::errorAndExit(string message)
+{
+	cout<<"Compilation error at line "<<":"<<endl;
+	fileManager.printCurrentLine();
+	cout<<message<<endl;
+	close();
+	cin.get();
+	exit(0);
 }
