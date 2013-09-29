@@ -15,11 +15,11 @@
 
 //Class used to store a token.
 //The type and subtype should be constants defined in general.h.
-class TokenClass
+class tokenClass
 { 
 public:
-	TokenClass();
-	TokenClass(int type,int subtype,string lexeme);
+	tokenClass();
+	tokenClass(int type,int subtype,string lexeme);
 	int type;
 	int subtype;
 	string lexeme;
@@ -29,7 +29,7 @@ private:
 
 //State used in the state matrix.
 //It stores the action to be taken upon reading a new character.
-//Final states with the action ACCEPT also has a TokenClass instance,
+//Final states with the action ACCEPT also has a tokenClass instance,
 //which stores the information of the accepted token.
 //Notice that memory for actionInfo and token may be
 //allocated during initialization. The user of this class
@@ -49,19 +49,19 @@ public:
 	Action action;
 	bool needPushBack;
 	string* actionInfo;
-	TokenClass* token;
+	tokenClass* token;
 private:
 };
 
 //Class that scans a file and output
 //tokens.
-class ScannerClass
+class scannerClass
 { 
 public:
-	ScannerClass();
+	scannerClass();
 	//Return either a valid token or one with type EOF_T or EMPTY_T.
 	//The former indicates EOF and the later indicates error.
-	TokenClass getToken();
+	tokenClass getToken();
 	void close();
 	//Print out the state matrix for debugging.
 	//An csv file will be created in the root folder.

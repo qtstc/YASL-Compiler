@@ -223,6 +223,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\pstack.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\scanner.cpp"
 				>
 			</File>
@@ -285,6 +289,10 @@
 			</File>
 			<File
 				RelativePath="GENERAL.H"
+				>
+			</File>
+			<File
+				RelativePath=".\pstack.h"
 				>
 			</File>
 			<File

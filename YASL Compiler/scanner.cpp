@@ -1,6 +1,6 @@
 //Tao Qian
 //This file contains implementations of the 
-//ScannerClass, TokenClass and State class.
+//scannerClass, tokenClass and State class.
 
 //The class header is found in scanner.h
 
@@ -8,11 +8,11 @@
 #include "scanner.h"
 #include <string.h>
 
-TokenClass::TokenClass():type(EMPTY_T),subtype(EMPTY_ST),lexeme(EMPTY_LEXEME){}
+tokenClass::tokenClass():type(EMPTY_T),subtype(EMPTY_ST),lexeme(EMPTY_LEXEME){}
 
-TokenClass::TokenClass(int type, int subtype, string lexeme):type(type),subtype(subtype),lexeme(lexeme){}
+tokenClass::tokenClass(int type, int subtype, string lexeme):type(type),subtype(subtype),lexeme(lexeme){}
 
-string TokenClass::tokenIntToString(int tokenNameAsInt)
+string tokenClass::tokenIntToString(int tokenNameAsInt)
 {
 	switch(tokenNameAsInt)
 	{
@@ -133,7 +133,7 @@ State::State():nextStateNum(INVALID_STATE),action(NO_ACTION),token(NULL),actionI
 
 State::State(int nextStateNum):nextStateNum(nextStateNum),action(NO_ACTION),token(NULL),actionInfo(NULL),needPushBack(false){}
 
-State::State(bool needPushBack,int type,int subtype,string lexeme):nextStateNum(0),needPushBack(needPushBack),token(new TokenClass(type,subtype,lexeme)),action(ACCEPT),actionInfo(NULL){}
+State::State(bool needPushBack,int type,int subtype,string lexeme):nextStateNum(0),needPushBack(needPushBack),token(new tokenClass(type,subtype,lexeme)),action(ACCEPT),actionInfo(NULL){}
 
 State::State(string errorMessage):nextStateNum(0),action(ERROR),needPushBack(false),token(NULL),actionInfo(new string(errorMessage)){}
 
@@ -144,18 +144,18 @@ State::State(int nextStateNum,bool needPushBack):nextStateNum(nextStateNum),acti
 std::ostream& operator<<(std::ostream &strm, const State &s) {
 	if(s.token != NULL)
 	{
-		return  strm <<"{"<< s.nextStateNum <<"}"<<TokenClass::tokenIntToString(s.token->type)<<" "<<TokenClass::tokenIntToString(s.token->subtype)<<" "<<s.token->lexeme;
+		return  strm <<"{"<< s.nextStateNum <<"}"<<tokenClass::tokenIntToString(s.token->type)<<" "<<tokenClass::tokenIntToString(s.token->subtype)<<" "<<s.token->lexeme;
 	}
 	return strm <<"{"<< s.nextStateNum <<"}"<<"NULL";
 }
 
 
-ScannerClass::ScannerClass()
+scannerClass::scannerClass()
 {
 	buildStateMatrix();
 }
 
-TokenClass ScannerClass::getToken()
+tokenClass scannerClass::getToken()
 {
 	int currentStateNum = 0;
 	int c;
@@ -173,16 +173,16 @@ TokenClass ScannerClass::getToken()
 		if(c >= MAX_CHAR)//If the char read is not within the range.
 		{
 			errorAndExit(("Illegal symbol: "+c));
-			return TokenClass(EOF_T,NONE_ST,"EOF");
+			return tokenClass(EOF_T,NONE_ST,"EOF");
 		}
 		State s = stateMatrix[currentStateNum][c];//Get the next state.
 		if(s.nextStateNum == INVALID_STATE)//If state is invalid, e.g. the char sequence is not recognized.
 		{
 			errorAndExit("Invalid char sequence: "+(currentLexeme+(char)c));
-			return TokenClass(EOF_T,NONE_ST,"EOF");
+			return tokenClass(EOF_T,NONE_ST,"EOF");
 		}
 		if(s.nextStateNum == EOF_INDEX)//If reached EOF, in this case no action needs to be taken.
-			return TokenClass(EOF_T,NONE_ST,"EOF");
+			return tokenClass(EOF_T,NONE_ST,"EOF");
 
 		switch(s.action)
 		{
@@ -202,14 +202,14 @@ TokenClass ScannerClass::getToken()
 					if(currentLexeme.length() > 4)
 					{
 						errorAndExit("Integer can have at most four digits: "+currentLexeme);
-						return TokenClass(EOF_T,NONE_ST,"EOF");
+						return tokenClass(EOF_T,NONE_ST,"EOF");
 					}
 
 				if(type == STRING_T)//Check for string length
 					if(currentLexeme.length() > 52)
 					{
 						errorAndExit("String can have at most fifty characters: "+currentLexeme);
-						return TokenClass(EOF_T,NONE_ST,"EOF");
+						return tokenClass(EOF_T,NONE_ST,"EOF");
 					}
 
 				if(type == IDENTIFIER_T)//Check for identifier length
@@ -217,28 +217,28 @@ TokenClass ScannerClass::getToken()
 					if(currentLexeme.length() > 12)
 					{
 						errorAndExit("Identifier can have at most twelve characters: "+currentLexeme);
-						return TokenClass(EOF_T,NONE_ST,"EOF");
+						return tokenClass(EOF_T,NONE_ST,"EOF");
 					}
 
 					//Here we check for the keywords
 					const char* cString = currentLexeme.c_str();
 					if(_strcmpi("or",cString)==0)
-						return TokenClass(ADDOP_T,OR_ST,currentLexeme);
+						return tokenClass(ADDOP_T,OR_ST,currentLexeme);
 					if(_strcmpi("and",cString)==0)
-						return TokenClass(MULOP_T,AND_ST,currentLexeme);
+						return tokenClass(MULOP_T,AND_ST,currentLexeme);
 					if(_strcmpi("div",cString)==0)
-						return TokenClass(MULOP_T,DIV_ST,currentLexeme);
+						return tokenClass(MULOP_T,DIV_ST,currentLexeme);
 					if(_strcmpi("mod",cString)==0)
-						return TokenClass(MULOP_T,MOD_ST,currentLexeme);
+						return tokenClass(MULOP_T,MOD_ST,currentLexeme);
 
 					//Here list all keywords in an array. Their sequence should not be changed.
 					char* keywords[16]={"program","function","begin","end","if","then","else","while","do","cout","cin","endl","int","boolean","true","false"};
 					for(int i = 0;i<16;i++)
 						if(_strcmpi(keywords[i],cString)==0)
-							return TokenClass(KEYWORD_BASE+i*10,NONE_ST,currentLexeme);
+							return tokenClass(KEYWORD_BASE+i*10,NONE_ST,currentLexeme);
 				}
 
-				return TokenClass(s.token->type,s.token->subtype,currentLexeme);
+				return tokenClass(s.token->type,s.token->subtype,currentLexeme);
 			}
 		case WARNING:
 			cout<<"warning"<<endl;//Currently not used because no warning state is checked by the state matrix.
@@ -269,10 +269,10 @@ TokenClass ScannerClass::getToken()
 	while(true);
 
 	//This should be unreachable
-	return TokenClass(EMPTY_T,EMPTY_ST,EMPTY_LEXEME);
+	return tokenClass(EMPTY_T,EMPTY_ST,EMPTY_LEXEME);
 }
 
-void ScannerClass::buildStateMatrix()
+void scannerClass::buildStateMatrix()
 {
 	int nonFinalStateNum = 0;
 
@@ -453,7 +453,7 @@ void ScannerClass::buildStateMatrix()
 	}
 }
 
-void ScannerClass::buildStateMatrixCompact()
+void scannerClass::buildStateMatrixCompact()
 {
 	int nonFinalStateNum = 0;
 
@@ -612,7 +612,7 @@ void ScannerClass::buildStateMatrixCompact()
 }
 
 
-void ScannerClass::printStateMatrix()
+void scannerClass::printStateMatrix()
 {
 	ofstream myfile;
 	myfile.open ("stateMatrix.csv");
@@ -626,7 +626,7 @@ void ScannerClass::printStateMatrix()
 	myfile.close();
 }
 
-void ScannerClass::close()
+void scannerClass::close()
 {
 	fileManager.closeSourceProgram();
 	//Clear the memory used by the state matrix
@@ -638,7 +638,7 @@ void ScannerClass::close()
 		}
 }
 
-void ScannerClass::errorAndExit(string message)
+void scannerClass::errorAndExit(string message)
 {
 	cout<<"Compilation error at line "<<":"<<endl;
 	fileManager.printCurrentLine();
