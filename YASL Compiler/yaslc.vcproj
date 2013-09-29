@@ -223,6 +223,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\parser.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\pstack.cpp"
 				>
 			</File>
@@ -289,6 +293,10 @@
 			</File>
 			<File
 				RelativePath="GENERAL.H"
+				>
+			</File>
+			<File
+				RelativePath=".\parser.h"
 				>
 			</File>
 			<File

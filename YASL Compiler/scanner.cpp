@@ -6,7 +6,6 @@
 
 #include "stdafx.h"  // Required for visual studio to work correctly
 #include "scanner.h"
-#include <string.h>
 
 tokenClass::tokenClass():type(EMPTY_T),subtype(EMPTY_ST),lexeme(EMPTY_LEXEME){}
 
@@ -129,13 +128,15 @@ string tokenClass::tokenIntToString(int tokenNameAsInt)
 	}
 }
 
+Keyword::Keyword(int type, const char* keyword):type(type),keyword(keyword){}
+
 State::State():nextStateNum(INVALID_STATE),action(NO_ACTION),token(NULL),actionInfo(NULL),needPushBack(false){}
 
 State::State(int nextStateNum):nextStateNum(nextStateNum),action(NO_ACTION),token(NULL),actionInfo(NULL),needPushBack(false){}
 
 State::State(bool needPushBack,int type,int subtype,string lexeme):nextStateNum(0),needPushBack(needPushBack),token(new tokenClass(type,subtype,lexeme)),action(ACCEPT),actionInfo(NULL){}
 
-State::State(string errorMessage):nextStateNum(0),action(ERROR),needPushBack(false),token(NULL),actionInfo(new string(errorMessage)){}
+State::State(string errorMessage):nextStateNum(0),action(ERROR_ACTION),needPushBack(false),token(NULL),actionInfo(new string(errorMessage)){}
 
 State::State(int nextStateNum,Action sideAction):nextStateNum(nextStateNum),action(sideAction),needPushBack(false),token(NULL),actionInfo(NULL){}
 
@@ -231,29 +232,29 @@ tokenClass scannerClass::getToken()
 					if(_strcmpi("mod",cString)==0)
 						return tokenClass(MULOP_T,MOD_ST,currentLexeme);
 
-					//Here list all keywords in an array. Their sequence should not be changed.
-					char* keywords[16]={"program","function","begin","end","if","then","else","while","do","cout","cin","endl","int","boolean","true","false"};
+					Keyword keywords[16]={PROGRAM_KEYWORD,FUNCTION_KEYWORD,BEGIN_KEYWORD,END_KEYWORD,IF_KEYWORD,THEN_KEYWORD,ELSE_KEYWORD,WHILE_KEYWORD,DO_KEYWORD,COUT_KEYWORD,CIN_KEYWORD,ENDL_KEYWORD,INT_KEYWORD,BOOLEAN_KEYWORD,TRUE_KEYWORD,FALSE_KEYWORD};
+					//char* keywords[16]={"program","function","begin","end","if","then","else","while","do","cout","cin","endl","int","boolean","true","false"};
 					for(int i = 0;i<16;i++)
-						if(_strcmpi(keywords[i],cString)==0)
-							return tokenClass(KEYWORD_BASE+i*10,NONE_ST,currentLexeme);
+						if(_strcmpi(keywords[i].keyword,cString)==0)
+							return tokenClass(keywords[i].type,NONE_ST,currentLexeme);
 				}
 
 				return tokenClass(s.token->type,s.token->subtype,currentLexeme);
 			}
-		case WARNING:
+		case WARNING_ACTION:
 			cout<<"warning"<<endl;//Currently not used because no warning state is checked by the state matrix.
 			break;
-		case ERROR:
+		case ERROR_ACTION:
 			{
 				if(s.actionInfo != NULL)
 					errorAndExit(*s.actionInfo);
 				else //This else is only here as a double check. Normally an error message should be included.
 					errorAndExit("Error");
 			}
-		case CLEAR_BUFFER:
+		case CLEAR_BUFFER_ACTION:
 			currentLexeme = "";//Clear buffer, for comments only.
 			break;
-		case CHECK_COMPILER_DIRECTIVE:
+		case CHECK_COMPILER_DIRECTIVE_ACTION:
 			currentLexeme+=c;
 			if(currentLexeme != "{$p+}")
 				fileManager.setPrintStatus(true);
@@ -386,7 +387,7 @@ void scannerClass::buildStateMatrix()
 		else if(i == EOF_INDEX)
 			stateMatrix[secondSlashStateNum][i] = State(0,true);
 		else
-			stateMatrix[secondSlashStateNum][i] = State(secondSlashStateNum,CLEAR_BUFFER);
+			stateMatrix[secondSlashStateNum][i] = State(secondSlashStateNum,CLEAR_BUFFER_ACTION);
 	}
 
 	//Read identifier
@@ -439,7 +440,7 @@ void scannerClass::buildStateMatrix()
 			stateMatrix[thirdLetterStateNum][i] = State(bracedCommentStateNum);
 
 		if(i == '}')
-			stateMatrix[fourthAddMinusStateNum][i] = State(0,CHECK_COMPILER_DIRECTIVE);
+			stateMatrix[fourthAddMinusStateNum][i] = State(0,CHECK_COMPILER_DIRECTIVE_ACTION);
 		else if(i == EOF_INDEX)
 			stateMatrix[fourthAddMinusStateNum][i] = State("Comment or compiler directive needs to be ended with a right brace.");
 		else stateMatrix[fourthAddMinusStateNum][i] =State(bracedCommentStateNum);
@@ -449,7 +450,7 @@ void scannerClass::buildStateMatrix()
 		else if(i == EOF_INDEX)
 			stateMatrix[bracedCommentStateNum][i] = State("Comment or compiler directive needs to be ended with a right brace.");
 		else
-			stateMatrix[bracedCommentStateNum][i] = State(bracedCommentStateNum,CLEAR_BUFFER);
+			stateMatrix[bracedCommentStateNum][i] = State(bracedCommentStateNum,CLEAR_BUFFER_ACTION);
 	}
 }
 
@@ -562,7 +563,7 @@ void scannerClass::buildStateMatrixCompact()
 		else if(i == EOF_INDEX)
 			stateMatrix[secondSlashStateNum][i] = State(0,true);
 		else
-			stateMatrix[secondSlashStateNum][i] = State(secondSlashStateNum,CLEAR_BUFFER);
+			stateMatrix[secondSlashStateNum][i] = State(secondSlashStateNum,CLEAR_BUFFER_ACTION);
 		//Identifier
 		if(('A'<=i&&i<='Z')||('a'<=i&&i<='z')||('0'<=i&&i<='9')||(i=='_'))
 			stateMatrix[firstLetterStateNum][i] = State(firstLetterStateNum);
@@ -597,7 +598,7 @@ void scannerClass::buildStateMatrixCompact()
 			stateMatrix[thirdLetterStateNum][i] = State(bracedCommentStateNum);
 
 		if(i == '}')
-			stateMatrix[fourthAddMinusStateNum][i] = State(0,CHECK_COMPILER_DIRECTIVE);
+			stateMatrix[fourthAddMinusStateNum][i] = State(0,CHECK_COMPILER_DIRECTIVE_ACTION);
 		else if(i == EOF_INDEX)
 			stateMatrix[fourthAddMinusStateNum][i] = State("Comment or compiler directive needs to be ended with a right brace.");
 		else stateMatrix[fourthAddMinusStateNum][i] =State(bracedCommentStateNum);
@@ -607,7 +608,7 @@ void scannerClass::buildStateMatrixCompact()
 		else if(i == EOF_INDEX)
 			stateMatrix[bracedCommentStateNum][i] = State("Comment or compiler directive needs to be ended with a right brace.");
 		else
-			stateMatrix[bracedCommentStateNum][i] = State(bracedCommentStateNum,CLEAR_BUFFER);
+			stateMatrix[bracedCommentStateNum][i] = State(bracedCommentStateNum,CLEAR_BUFFER_ACTION);
 	}
 }
 

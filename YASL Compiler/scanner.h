@@ -27,6 +27,15 @@ public:
 private:
 }  ;
 
+//Data structure used to group keyword with its associated type index.
+class Keyword
+{
+public:
+	Keyword(int type, const char* keyword);
+	const char* keyword;
+	int type;
+};
+
 //State used in the state matrix.
 //It stores the action to be taken upon reading a new character.
 //Final states with the action ACCEPT also has a tokenClass instance,
