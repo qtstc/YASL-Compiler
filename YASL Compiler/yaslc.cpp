@@ -25,8 +25,18 @@ int main(int argc, char* argv[])
 	//scanner.close();
 
 	parserClass parser;
+	while (1) //an infinite loop
+	{ cout << "About to parse an expression: \n";
+		parser.parseExpr();
+	  cout << "Parsed one expression\n";
+	}
 
 
+	/*pStackClass stack;
+	tokenClass c(11,12,"haha");
+	stack.push(c);
+	tokenClass t = stack.pop();
+	cout<<t.type<<endl;*/
 
 	cin.get();
 

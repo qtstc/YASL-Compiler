@@ -6,6 +6,57 @@
 #include "stdafx.h"
 #include "parser.h"
 
+void parserClass::parseExpr()
+{
+	pStackClass stack;
+	stack.push(tokenClass(SEMICOLON_T,NONE_ST,EMPTY_LEXEME));
+	tokenClass t = scanner.getToken();
+	while(true)
+	{
+		tokenClass topTerm = stack.getTopMostTerminal();
+		if(topTerm.type == t.type && topTerm.type == SEMICOLON_T)
+			return;
+		Precedence p = prec(topTerm,t);
+		if(p == LESS_PRECEDENCE || p == EQUAL_PRECEDENCE)//Shift
+		{
+			stack.push(t);
+			t = scanner.getToken();
+		}
+		else if(p == GREATER_PRECEDENCE)
+		{
+			std::vector<tokenClass> tokens;
+			tokenClass topMost;
+			stack.lastTerminalPopped = tokenClass(EMPTY_T,EMPTY_ST,EMPTY_LEXEME);
+			do
+			{
+				tokens.push_back(stack.pop());
+			}
+			while(stack.lastTerminalPopped.type == EMPTY_T
+				||(!stack.terminalOnTop())
+				||prec(stack.getTopMostTerminal(),stack.lastTerminalPopped) != LESS_PRECEDENCE);
+			if(isValidRHS(tokens))
+			{
+				for(int i = 0;i<tokens.size();++i)
+				{
+					cout<<tokenClass::tokenIntToString(tokens[tokens.size()-1-i].type)<<" ";
+				}
+				cout<<"->E"<<endl;
+				stack.push(tokenClass(E_T,NONE_ST,EMPTY_LEXEME));
+			}
+			else
+			{
+				stack.clear();
+				errorAndExit("Invalid right hand side.");
+			}
+		}
+		else
+		{
+			stack.clear();
+			errorAndExit("Invalid expression sequnce");
+		}
+	}
+
+}
 parserClass::parserClass()
 {
 	buildPrecedenceTable();
@@ -135,7 +186,95 @@ int parserClass::typeToTableIndex(int type)
 		return 8;
 	case SEMICOLON_T:
 		return 9;
-	case OTHER_T:
+	default:
 		return 10;
 	}
+}
+Precedence parserClass::prec(int firstType,int secondType)
+{
+	return precedenceTable[typeToTableIndex(firstType)][typeToTableIndex(secondType)];
+}
+
+Precedence parserClass::prec(tokenClass firstToken,tokenClass secondToken)
+{
+	return prec(firstToken.type,secondToken.type);
+}
+bool parserClass::isValidRHS(std::vector<tokenClass> tokens)
+{
+	//Base case of a single terminal
+	if(tokens.size() == 1)
+	{
+		tokenClass token = tokens.back();
+		if(token.type == INTEGER_T
+			||token.type == IDENTIFIER_T
+			||token.type == TRUE_T
+			||token.type == FALSE_T
+			||token.type == E_T)
+			return true;
+		return false;
+	}
+	//All the other cases have three tokens
+	if(tokens.size() != 3)
+		return false;
+
+	tokenClass last = tokens[0];
+	tokenClass middle = tokens[1];
+	tokenClass first = tokens[2];
+	//First check the case of (E)
+	if(first.type == LEFTPAREN_T && last.type == RIGHTPAREN_T)
+		return isValidRHS(std::vector<tokenClass>(1,middle));
+	//Then check the case of E X E, where X is a YASL operator
+	if(isValidRHS(std::vector<tokenClass>(1,first))&&isValidRHS(std::vector<tokenClass>(1,last)))
+	{
+		//Check +
+		if(middle.type == ADDOP_T && middle.subtype == ADD_ST)
+			return true;
+		//Check *
+		if(middle.type == MULOP_T && middle.subtype == MULTIPLY_ST)
+			return true;
+		//Check -
+		if(middle.type == ADDOP_T && middle.subtype == SUBSTRACT_ST)
+			return true;
+		//Check div
+		if(middle.type == MULOP_T && middle.subtype == DIV_ST)
+			return true;
+		//Check mod
+		if(middle.type == MULOP_T && middle.subtype == MOD_ST)
+			return true;
+		//Check or
+		if(middle.type == ADDOP_T && middle.subtype == OR_ST)
+			return true;
+		//Check and
+		if(middle.type == MULOP_T && middle.subtype == AND_ST)
+			return true;
+		//Check ==
+		if(middle.type == RELOP_T && middle.subtype == EQUAL_ST)
+			return true;
+		//Check <
+		if(middle.type == RELOP_T && middle.subtype == LESS_ST)
+			return true;
+		//Check <=
+		if(middle.type == RELOP_T && middle.subtype == LESSOREQUAL_ST)
+			return true;
+		//Check >
+		if(middle.type == RELOP_T && middle.subtype == GREATER_ST)
+			return true;
+		//Check >=
+		if(middle.type == RELOP_T && middle.subtype == GREATEROREQUAL_ST)
+			return true;
+		//Check <>
+		if(middle.type == RELOP_T && middle.subtype == UNEQUAL_ST)
+			return true;
+		return false;
+	}
+
+}
+void parserClass::errorAndExit(string message)
+{
+	cout<<"Invalid expression at line "<<":"<<endl;
+	scanner.printCurrentLine();
+	cout<<message<<endl;
+	scanner.close();
+	cin.get();
+	exit(0);
 }

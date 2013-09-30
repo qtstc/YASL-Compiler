@@ -23,20 +23,16 @@ class pStackClass
 public:
 	pStackClass();
 	void push(tokenClass theToken);
+	tokenClass pop();
+	void clear();
+	tokenClass getTopMostTerminal();
+	tokenClass lastTerminalPopped;
+	bool terminalOnTop();
 
 private:
 	StackCell *top;
+	tokenClass toTokenClass(StackCell* cell);
 };
-
-
-
-
-
-
-
-
-
-
 
 
 

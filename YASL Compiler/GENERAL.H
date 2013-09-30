@@ -72,8 +72,9 @@ const int MAXCELLSPERSTRING = 82;  //80 characters as well as \n plus \0.
 #define FALSE_T 310
 
 #define OTHER_T 320//Used in the precedence table.
+#define E_T 330//Used in shift reduce parser.
 
-#define EOF_T 330
+#define EOF_T 340
 
 #define PROGRAM_KEYWORD Keyword(PROGRAM_T,"program")
 #define FUNCTION_KEYWORD Keyword(FUNCTION_T,"function")

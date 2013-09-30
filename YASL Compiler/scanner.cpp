@@ -121,6 +121,10 @@ string tokenClass::tokenIntToString(int tokenNameAsInt)
 	case FALSE_T:
 		return "FALSE_T";
 
+	case E_T:
+		return "E";
+	case OTHER_T:
+		return "OTHER";
 	case EOF_T:
 		return "EOF_T";
 	default:
@@ -256,9 +260,9 @@ tokenClass scannerClass::getToken()
 			break;
 		case CHECK_COMPILER_DIRECTIVE_ACTION:
 			currentLexeme+=c;
-			if(currentLexeme != "{$p+}")
+			if(currentLexeme == "{$p+}")
 				fileManager.setPrintStatus(true);
-			else if (currentLexeme != "{$p-}")
+			else if (currentLexeme == "{$p-}")
 				fileManager.setPrintStatus(false);
 			else
 				cout<<"Warning, compiler directive "+currentLexeme+" is undefined."<<endl;
@@ -637,6 +641,11 @@ void scannerClass::close()
 			delete stateMatrix[i][j].actionInfo;
 			delete stateMatrix[i][j].token;
 		}
+}
+
+void scannerClass::printCurrentLine()
+{
+	fileManager.printCurrentLine();
 }
 
 void scannerClass::errorAndExit(string message)

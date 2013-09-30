@@ -75,6 +75,7 @@ public:
 	//Print out the state matrix for debugging.
 	//An csv file will be created in the root folder.
 	void printStateMatrix();
+	void printCurrentLine();
 private:
 	State stateMatrix[MAX_STATE][MAX_CHAR];
 	fileManagerClass fileManager;

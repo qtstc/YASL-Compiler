@@ -1,0 +1,73 @@
+//Created by Ben
+program
+PrOGrAm
+function
+begin
+end 
+if			
+then      
+else		
+while
+do
+cout
+cin		
+endl		
+or
+and
+div
+mod
+int			
+boolean
+true
+false
+truefalse
+andif
+AND
+==			
+<
+<=
+< =
+>=
+> =
+>
+<>
+< >		
+<<
+< <
+>>			
+< <
++
+-
+~=-+
+*
+{comment}
+{multi
+line
+comment}
+//
+//
+//
+(
+)
+=
+'st_2ring'
+;
+,
+.
+~
+&
+{$p+}
+{$q+} //invalid compiler directive!
+{$p-}
+1234
+=18-+43;cat
+
+program begin
+int x = 10;
+int y = 0-10;
+int z = x - y;
+if(z==0) then print 'hooray!'
+end.
+=
+= =
+==

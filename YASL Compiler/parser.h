@@ -8,6 +8,8 @@
 #define _parser
 
 #include "scanner.h"
+#include "pstack.h"
+#include <vector>
 
 class parserClass
 {
@@ -21,6 +23,10 @@ private:
 	int typeToTableIndex(int type);
 	void setPre(int col,int row, Precedence pre);
 	void printPrecedenceTable();
+	Precedence prec(int firstType,int secondType);
+	Precedence prec(tokenClass firstToken,tokenClass secondToken);
+	bool isValidRHS(std::vector<tokenClass> tokens);
+	void errorAndExit(string message);
 };
 
 #endif
