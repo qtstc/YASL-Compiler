@@ -13,16 +13,7 @@
 
 int main(int argc, char* argv[])
 {   
-	//scannerClass scanner;
-	//tokenClass token = scanner.getToken();
-	//while(token.type != EOF_T)
-	//{
-	//	cout<<token.lexeme<<"\t\t"<<tokenClass::tokenIntToString(token.type)<<"\t\t"<<tokenClass::tokenIntToString(token.subtype)<<endl;
-	//	token = scanner.getToken();
-	//}
-	//cout<<token.lexeme<<endl;
-	////scanner.printStateMatrix();
-	//scanner.close();
+
 
 	parserClass parser;
 	while (1) //an infinite loop
@@ -30,13 +21,6 @@ int main(int argc, char* argv[])
 		parser.parseExpr();
 	  cout << "Parsed one expression\n";
 	}
-
-
-	/*pStackClass stack;
-	tokenClass c(11,12,"haha");
-	stack.push(c);
-	tokenClass t = stack.pop();
-	cout<<t.type<<endl;*/
 
 	cin.get();
 

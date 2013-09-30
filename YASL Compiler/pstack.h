@@ -12,9 +12,7 @@
 class StackCell
 {
 public:
-	int type;
-	int subtype;
-
+	tokenClass token;
 	StackCell *next;
 };
 
@@ -31,7 +29,6 @@ public:
 
 private:
 	StackCell *top;
-	tokenClass toTokenClass(StackCell* cell);
 };
 
 

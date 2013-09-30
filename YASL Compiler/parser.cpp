@@ -36,12 +36,13 @@ void parserClass::parseExpr()
 				||prec(stack.getTopMostTerminal(),stack.lastTerminalPopped) != LESS_PRECEDENCE);
 			if(isValidRHS(tokens))
 			{
+				cout<<"E -> ";
 				for(int i = 0;i<tokens.size();++i)
 				{
-					cout<<tokenClass::tokenIntToString(tokens[tokens.size()-1-i].type)<<" ";
+					cout<<tokens[tokens.size()-1-i].lexeme<<" ";
 				}
-				cout<<"->E"<<endl;
-				stack.push(tokenClass(E_T,NONE_ST,EMPTY_LEXEME));
+				cout<<endl;
+				stack.push(tokenClass(E_T,NONE_ST,"E"));
 			}
 			else
 			{
@@ -217,6 +218,7 @@ bool parserClass::isValidRHS(std::vector<tokenClass> tokens)
 	if(tokens.size() != 3)
 		return false;
 
+	//Reversed because of the stack.
 	tokenClass last = tokens[0];
 	tokenClass middle = tokens[1];
 	tokenClass first = tokens[2];

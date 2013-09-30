@@ -14,15 +14,14 @@ void pStackClass::push(tokenClass token)
 	StackCell *tempCell = new StackCell;
 	tempCell->next = top;
 	top = tempCell;
-	tempCell->type = token.type;
-	tempCell->subtype = token.subtype;
+	tempCell->token = token;
 }
 
 tokenClass pStackClass::pop()
 {
 	if(top == NULL)
 		return tokenClass(EMPTY_T,EMPTY_ST,EMPTY_LEXEME);
-	tokenClass token = toTokenClass(top);
+	tokenClass token = top->token;
 	//Check if the token is a terminal, if yes, update the lastTerminalPoped.
 	if(token.type != E_T)
 	{
@@ -39,17 +38,13 @@ tokenClass pStackClass::getTopMostTerminal()
 	StackCell *p = top;
 	while(p != NULL)
 	{
-		if(p->type != E_T)
-			return toTokenClass(p);
+		if(p->token.type != E_T)
+			return p->token;
 		p = p->next;
 	}
 	return tokenClass(EMPTY_T,EMPTY_ST,EMPTY_LEXEME);//p == NULL
 }
 
-tokenClass pStackClass::toTokenClass(StackCell* cell)
-{
-	return tokenClass(cell->type,cell->subtype,EMPTY_LEXEME);
-}
 
 void pStackClass::clear()
 {
@@ -65,5 +60,5 @@ bool pStackClass::terminalOnTop()
 {
 	if(top == NULL)
 		return false;
-	return top->type != E_T;
+	return top->token.type != E_T;
 }
