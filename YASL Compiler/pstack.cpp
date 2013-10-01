@@ -24,9 +24,7 @@ tokenClass pStackClass::pop()
 	tokenClass token = top->token;
 	//Check if the token is a terminal, if yes, update the lastTerminalPoped.
 	if(token.type != E_T)
-	{
 		lastTerminalPopped = token;
-	}
 	StackCell *temp = top;
 	top = top->next;
 	delete temp;
@@ -45,8 +43,7 @@ tokenClass pStackClass::getTopMostTerminal()
 	return tokenClass(EMPTY_T,EMPTY_ST,EMPTY_LEXEME);//p == NULL
 }
 
-
-void pStackClass::clear()
+pStackClass::~pStackClass()
 {
 	while(top != NULL)
 	{

@@ -6,62 +6,63 @@
 #include "stdafx.h"
 #include "parser.h"
 
+parserClass::parserClass()
+{
+	buildPrecedenceTable();
+	//printPrecedenceTable();
+}
+
 void parserClass::parseExpr()
 {
-	pStackClass stack;
-	stack.push(tokenClass(SEMICOLON_T,NONE_ST,EMPTY_LEXEME));
+	pStackClass stack;//Stack used in the algorithm. Remember to call clear() on it to release memory.
+	stack.push(tokenClass(SEMICOLON_T,NONE_ST,EMPTY_LEXEME));//First push a semicolon onto the stack.
 	tokenClass t = scanner.getToken();
 	while(true)
 	{
 		tokenClass topTerm = stack.getTopMostTerminal();
+		//Termination condition.
+		//It should be met if the expression is valid and terminate with semicolon
 		if(topTerm.type == t.type && topTerm.type == SEMICOLON_T)
 			return;
-		Precedence p = prec(topTerm,t);
+		Precedence p = prec(topTerm,t);//Store the precedence because its checked multiple times.
 		if(p == LESS_PRECEDENCE || p == EQUAL_PRECEDENCE)//Shift
 		{
 			stack.push(t);
 			t = scanner.getToken();
 		}
-		else if(p == GREATER_PRECEDENCE)
+		else if(p == GREATER_PRECEDENCE)//Reduce
 		{
 			std::vector<tokenClass> tokens;
-			tokenClass topMost;
-			stack.lastTerminalPopped = tokenClass(EMPTY_T,EMPTY_ST,EMPTY_LEXEME);
+			stack.lastTerminalPopped = tokenClass(EMPTY_T,EMPTY_ST,EMPTY_LEXEME);//Reset the lastTerminalPopped
 			do
 			{
-				tokens.push_back(stack.pop());
+				tokenClass popped = stack.pop();
+				if(popped.type == EMPTY_T)//If the stack is empty. This should not happen in normal operation.
+					errorAndExit("Empty stack.");
+				tokens.push_back(popped);
 			}
 			while(stack.lastTerminalPopped.type == EMPTY_T
 				||(!stack.terminalOnTop())
 				||prec(stack.getTopMostTerminal(),stack.lastTerminalPopped) != LESS_PRECEDENCE);
 			if(isValidRHS(tokens))
 			{
-				cout<<"E -> ";
-				for(int i = 0;i<tokens.size();++i)
+				if(scanner.expressionDebugging)//Print debug message if expression debugging is turned on.
 				{
-					cout<<tokens[tokens.size()-1-i].lexeme<<" ";
+					cout<<"E -> ";
+					for(int i = 0;i<tokens.size();++i)
+						cout<<tokens[tokens.size()-1-i].lexeme<<" ";
+					cout<<endl;
 				}
-				cout<<endl;
+				//Replace the expression in the array with a E if the expression is valid.
 				stack.push(tokenClass(E_T,NONE_ST,"E"));
 			}
-			else
-			{
-				stack.clear();
+			else//If expression is invalid, throw error.
 				errorAndExit("Invalid right hand side.");
-			}
 		}
-		else
-		{
-			stack.clear();
-			errorAndExit("Invalid expression sequnce");
-		}
+		else//If precedence is not valid, throw error.
+			errorAndExit("Invalid expression");
 	}
 
-}
-parserClass::parserClass()
-{
-	buildPrecedenceTable();
-	printPrecedenceTable();
 }
 
 void parserClass::buildPrecedenceTable()
@@ -187,7 +188,7 @@ int parserClass::typeToTableIndex(int type)
 		return 8;
 	case SEMICOLON_T:
 		return 9;
-	default:
+	default://Everything else is considered other.
 		return 10;
 	}
 }
@@ -226,6 +227,7 @@ bool parserClass::isValidRHS(std::vector<tokenClass> tokens)
 	if(first.type == LEFTPAREN_T && last.type == RIGHTPAREN_T)
 		return isValidRHS(std::vector<tokenClass>(1,middle));
 	//Then check the case of E X E, where X is a YASL operator
+	//If the expression at both ends of the expression are valid.
 	if(isValidRHS(std::vector<tokenClass>(1,first))&&isValidRHS(std::vector<tokenClass>(1,last)))
 	{
 		//Check +
@@ -269,11 +271,11 @@ bool parserClass::isValidRHS(std::vector<tokenClass> tokens)
 			return true;
 		return false;
 	}
-
+	return false;
 }
 void parserClass::errorAndExit(string message)
 {
-	cout<<"Invalid expression at line "<<":"<<endl;
+	cout<<"Syntax Error at line ";
 	scanner.printCurrentLine();
 	cout<<message<<endl;
 	scanner.close();

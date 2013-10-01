@@ -76,6 +76,7 @@ public:
 	//An csv file will be created in the root folder.
 	void printStateMatrix();
 	void printCurrentLine();
+	bool expressionDebugging;//Flag used by parser to decide whether to print expression debugging msg.
 private:
 	State stateMatrix[MAX_STATE][MAX_CHAR];
 	fileManagerClass fileManager;

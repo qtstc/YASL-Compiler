@@ -10,7 +10,6 @@
 tokenClass::tokenClass():type(EMPTY_T),subtype(EMPTY_ST),lexeme(EMPTY_LEXEME){}
 
 tokenClass::tokenClass(int type, int subtype, string lexeme):type(type),subtype(subtype),lexeme(lexeme){}
-
 string tokenClass::tokenIntToString(int tokenNameAsInt)
 {
 	switch(tokenNameAsInt)
@@ -132,6 +131,7 @@ string tokenClass::tokenIntToString(int tokenNameAsInt)
 	}
 }
 
+
 Keyword::Keyword(int type, const char* keyword):type(type),keyword(keyword){}
 
 State::State():nextStateNum(INVALID_STATE),action(NO_ACTION),token(NULL),actionInfo(NULL),needPushBack(false){}
@@ -146,6 +146,7 @@ State::State(int nextStateNum,Action sideAction):nextStateNum(nextStateNum),acti
 
 State::State(int nextStateNum,bool needPushBack):nextStateNum(nextStateNum),action(NO_ACTION),needPushBack(needPushBack),token(NULL),actionInfo(NULL){}
 
+
 std::ostream& operator<<(std::ostream &strm, const State &s) {
 	if(s.token != NULL)
 	{
@@ -155,9 +156,10 @@ std::ostream& operator<<(std::ostream &strm, const State &s) {
 }
 
 
-scannerClass::scannerClass()
+scannerClass::scannerClass():expressionDebugging(false)
 {
 	buildStateMatrix();
+	//printStateMatrix();
 }
 
 tokenClass scannerClass::getToken()
@@ -264,6 +266,10 @@ tokenClass scannerClass::getToken()
 				fileManager.setPrintStatus(true);
 			else if (currentLexeme == "{$p-}")
 				fileManager.setPrintStatus(false);
+			else if (currentLexeme == "{$e+}")
+				expressionDebugging = true;
+			else if (currentLexeme == "{$e-}")
+				expressionDebugging = false;
 			else
 				cout<<"Warning, compiler directive "+currentLexeme+" is undefined."<<endl;
 			break;
@@ -276,6 +282,7 @@ tokenClass scannerClass::getToken()
 	//This should be unreachable
 	return tokenClass(EMPTY_T,EMPTY_ST,EMPTY_LEXEME);
 }
+
 
 void scannerClass::buildStateMatrix()
 {
@@ -650,7 +657,7 @@ void scannerClass::printCurrentLine()
 
 void scannerClass::errorAndExit(string message)
 {
-	cout<<"Compilation error at line "<<":"<<endl;
+	cout<<"Compilation error at line ";
 	fileManager.printCurrentLine();
 	cout<<message<<endl;
 	close();

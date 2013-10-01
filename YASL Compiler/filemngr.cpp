@@ -69,7 +69,7 @@ void fileManagerClass::pushBack()
 void fileManagerClass::printCurrentLine()
 //Print the current line(the content of the buffer).
 {
-	cout<<currentLineNumber<<"- "<<currentLine;
+	cout<<currentLineNumber<<": "<<endl<<currentLine;
 }
 
 void fileManagerClass::setPrintStatus(bool newStatus)
