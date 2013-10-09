@@ -14,7 +14,7 @@ parserClass::parserClass()
 
 void parserClass::parseExpr()
 {
-	pStackClass stack;//Stack used in the algorithm. Remember to call clear() on it to release memory.
+	pStackClass stack;//Stack used in the algorithm.
 	stack.push(tokenClass(SEMICOLON_T,NONE_ST,EMPTY_LEXEME));//First push a semicolon onto the stack.
 	tokenClass t = scanner.getToken();
 	while(true)
@@ -24,7 +24,7 @@ void parserClass::parseExpr()
 		//It should be met if the expression is valid and terminate with semicolon
 		if(topTerm.type == t.type && topTerm.type == SEMICOLON_T)
 			return;
-		Precedence p = prec(topTerm,t);//Store the precedence because its checked multiple times.
+		Precedence p = prec(topTerm,t);//Store the precedence because it’s checked multiple times.
 		if(p == LESS_PRECEDENCE || p == EQUAL_PRECEDENCE)//Shift
 		{
 			stack.push(t);

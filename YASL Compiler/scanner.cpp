@@ -7,6 +7,7 @@
 #include "stdafx.h"  // Required for visual studio to work correctly
 #include "scanner.h"
 
+//tokenClass
 tokenClass::tokenClass():type(EMPTY_T),subtype(EMPTY_ST),lexeme(EMPTY_LEXEME){}
 
 tokenClass::tokenClass(int type, int subtype, string lexeme):type(type),subtype(subtype),lexeme(lexeme){}
@@ -134,6 +135,7 @@ string tokenClass::tokenIntToString(int tokenNameAsInt)
 
 Keyword::Keyword(int type, const char* keyword):type(type),keyword(keyword){}
 
+//State
 State::State():nextStateNum(INVALID_STATE),action(NO_ACTION),token(NULL),actionInfo(NULL),needPushBack(false){}
 
 State::State(int nextStateNum):nextStateNum(nextStateNum),action(NO_ACTION),token(NULL),actionInfo(NULL),needPushBack(false){}
@@ -156,6 +158,8 @@ std::ostream& operator<<(std::ostream &strm, const State &s) {
 }
 
 
+
+//scannerClass
 scannerClass::scannerClass():expressionDebugging(false)
 {
 	buildStateMatrix();
