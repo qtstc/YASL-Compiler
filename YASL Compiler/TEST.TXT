@@ -1,7 +1,7 @@
 {$e+}
 {$p+}
 //Test one token.
-ident0;
+ide_nt0;
 12;
 true;
 false;
