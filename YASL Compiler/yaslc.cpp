@@ -15,15 +15,17 @@ int main(int argc, char* argv[])
 {   
 
 
+	//parserClass parser;
+	//while (1) //an infinite loop
+	//{ cout << "About to parse an expression: \n";
+	//	parser.parseExpr();
+	//  cout << "Parsed one expression\n";
+	//}
+
 	parserClass parser;
-	while (1) //an infinite loop
-	{ cout << "About to parse an expression: \n";
-		parser.parseExpr();
-	  cout << "Parsed one expression\n";
-	}
+	parser.parseProgram();
 
 	cin.get();
-
     return (0);
 }
 

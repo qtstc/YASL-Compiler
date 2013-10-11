@@ -12,17 +12,52 @@ parserClass::parserClass()
 	//printPrecedenceTable();
 }
 
+
+void parserClass::parseProgram()
+{
+	t = scanner.getToken();
+	parseStatement();
+	cout<< "YASLC-TQ has just compiled "<<scanner.numLinesProcessed()<<" lines successfully."<<endl;
+	scanner.close();
+}
+
+void parserClass::parseStatement()
+{
+	switch(t.type)
+	{
+	case WHILE_T:
+		t = scanner.getToken();
+		parseExpr();
+		checkTokenAndGetNext(t,tokenClass(DO_T,NONE_ST,"do"));
+		parseStatement();
+		break;
+	case IDENTIFIER_T:
+		t=scanner.getToken();
+		checkTokenAndGetNext(t,tokenClass(ASSIGNMENT_T,NONE_ST,"="));
+		//Parsed "="
+		parseExpr();
+		checkTokenAndGetNext(t,tokenClass(SEMICOLON_T,NONE_ST,";"));
+		break;
+	default:
+		vector<string> found;
+		found.push_back("while");
+		found.push_back("identifier");
+		recurDescentErrorAndExit(t.lexeme,found);
+	}
+}
+
 void parserClass::parseExpr()
 {
 	pStackClass stack;//Stack used in the algorithm.
 	stack.push(tokenClass(SEMICOLON_T,NONE_ST,EMPTY_LEXEME));//First push a semicolon onto the stack.
-	tokenClass t = scanner.getToken();
+	if(isEndOfExpression(t))
+		errorAndExit("Empty expression");
 	while(true)
 	{
 		tokenClass topTerm = stack.getTopMostTerminal();
 		//Termination condition.
 		//It should be met if the expression is valid and terminate with semicolon
-		if(topTerm.type == t.type && topTerm.type == SEMICOLON_T)
+		if(isEndOfExpression(t) && isEndOfExpression(topTerm))
 			return;
 		Precedence p = prec(topTerm,t);//Store the precedence because it’s checked multiple times.
 		if(p == LESS_PRECEDENCE || p == EQUAL_PRECEDENCE)//Shift
@@ -62,7 +97,6 @@ void parserClass::parseExpr()
 		else//If precedence is not valid, throw error.
 			errorAndExit("Invalid expression");
 	}
-
 }
 
 void parserClass::buildPrecedenceTable()
@@ -166,6 +200,9 @@ void parserClass::setPre(int col,int row, Precedence pre)
 
 int parserClass::typeToTableIndex(int type)
 {
+	if(isEndOfExpression(type))
+		return 9;
+
 	switch(type)
 	{
 	case RELOP_T:
@@ -273,6 +310,18 @@ bool parserClass::isValidRHS(std::vector<tokenClass> tokens)
 	}
 	return false;
 }
+
+void parserClass::recurDescentErrorAndExit(string found, vector<string> expected)
+{
+	string s = "Found <"+found+"> when expecting one of <";
+	for(int i = 0;i<expected.size()-1;++i)
+	{
+		s += expected[i]+",";
+	}
+	s += expected[expected.size()-1]+">";
+	errorAndExit(s);
+}
+
 void parserClass::errorAndExit(string message)
 {
 	cout<<"Syntax Error at line ";
@@ -281,4 +330,23 @@ void parserClass::errorAndExit(string message)
 	scanner.close();
 	cin.get();
 	exit(0);
+}
+
+bool parserClass::isEndOfExpression(tokenClass token)
+{
+	if(isEndOfExpression(token.type))
+		return true;
+	return false;
+}
+bool parserClass::isEndOfExpression(int type)
+{
+	if(type == DO_T || type == SEMICOLON_T)
+		return true;
+	return false;
+}
+void parserClass::checkTokenAndGetNext(tokenClass token, tokenClass expected)
+{
+	if(token.type != expected.type)
+		recurDescentErrorAndExit(token.lexeme,vector<string>(1,expected.lexeme));
+	t = scanner.getToken();
 }

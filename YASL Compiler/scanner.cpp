@@ -668,3 +668,8 @@ void scannerClass::errorAndExit(string message)
 	cin.get();
 	exit(0);
 }
+
+int scannerClass:: numLinesProcessed()
+{
+	return fileManager.numLinesProcessed();
+}
