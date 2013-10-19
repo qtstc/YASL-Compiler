@@ -37,7 +37,10 @@ tokenClass pStackClass::getTopMostTerminal()
 	while(p != NULL)
 	{
 		if(p->token.type != E_T)
+		{
+			//cout<<p->token.type<<" "<<E_T<<endl;
 			return p->token;
+		}
 		p = p->next;
 	}
 	return tokenClass(EMPTY_T,EMPTY_ST,EMPTY_LEXEME);//p == NULL

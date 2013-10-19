@@ -57,12 +57,10 @@ string tokenClass::tokenIntToString(int tokenNameAsInt)
 	case LESSOREQUAL_ST:
 		return "LESSOREQUAL_ST";
 
-	case BITWISE_T:
-		return "BITWISE_T";
-	case BITLEFT_ST:
-		return "BITLEFT_ST";
-	case BITRIGHT_ST:
-		return "BITRIGHT_ST";
+	case BITLEFT_T:
+		return "BITLEFT_T";
+	case BITRIGHT_T:
+		return "BITRIGHT_T";
 
 	case LEFTPAREN_T:
 		return "LEFTPAREN_T";
@@ -332,7 +330,7 @@ void scannerClass::buildStateMatrix()
 	for(int i = 0;i<MAX_CHAR;++i)
 	{
 		if(i == '<')
-			stateMatrix[firstLessThanStateNum]['<'] = State(false,BITWISE_T,BITLEFT_ST,"<<");
+			stateMatrix[firstLessThanStateNum]['<'] = State(false,BITLEFT_T,NONE_ST,"<<");
 		else if(i=='>')
 			stateMatrix[firstLessThanStateNum]['>'] = State(false,RELOP_T,UNEQUAL_ST,"<>");
 		else if (i == '=')
@@ -347,7 +345,7 @@ void scannerClass::buildStateMatrix()
 	for(int i = 0;i<MAX_CHAR;++i)
 	{
 		if(i == '>')
-			stateMatrix[firstGreaterThanStateNum]['>'] = State(false,BITWISE_T,BITRIGHT_ST,">>");
+			stateMatrix[firstGreaterThanStateNum]['>'] = State(false,BITRIGHT_T,NONE_ST,">>");
 		else if (i == '=')
 			stateMatrix[firstGreaterThanStateNum]['='] = State(false,RELOP_T,GREATEROREQUAL_ST,">=");
 		else
@@ -541,7 +539,7 @@ void scannerClass::buildStateMatrixCompact()
 			stateMatrix[firstEqualStateNum][i] = State(true,ASSIGNMENT_T,NONE_ST,"=");
 		//"<"
 		if(i == '<')
-			stateMatrix[firstLessThanStateNum]['<'] = State(false,BITWISE_T,BITLEFT_ST,"<<");
+			stateMatrix[firstLessThanStateNum]['<'] = State(false,BITLEFT_T,NONE_ST,"<<");
 		else if(i=='>')
 			stateMatrix[firstLessThanStateNum]['>'] = State(false,RELOP_T,UNEQUAL_ST,"<>");
 		else if (i == '=')
@@ -550,7 +548,7 @@ void scannerClass::buildStateMatrixCompact()
 			stateMatrix[firstLessThanStateNum][i] = State(true,RELOP_T,LESS_ST,"<");
 		//">"
 		if(i == '>')
-			stateMatrix[firstGreaterThanStateNum]['>'] = State(false,BITWISE_T,BITRIGHT_ST,">>");
+			stateMatrix[firstGreaterThanStateNum]['>'] = State(false,BITRIGHT_T,NONE_ST,">>");
 		else if (i == '=')
 			stateMatrix[firstGreaterThanStateNum]['='] = State(false,RELOP_T,GREATEROREQUAL_ST,">=");
 		else

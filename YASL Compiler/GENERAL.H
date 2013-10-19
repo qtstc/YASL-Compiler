@@ -37,44 +37,43 @@ const int MAXCELLSPERSTRING = 82;  //80 characters as well as \n plus \0.
 #define GREATER_ST 35
 #define LESS_ST 36
 
-#define BITWISE_T 40
-#define BITLEFT_ST 41
-#define BITRIGHT_ST 42
+#define BITLEFT_T 40
+#define BITRIGHT_T 50
 
-#define LEFTPAREN_T 50
-#define RIGHTPAREN_T 60
+#define LEFTPAREN_T 60
+#define RIGHTPAREN_T 70
 
-#define SEMICOLON_T 70
-#define COMMA_T 80
-#define DOT_T 90
-#define TILDE_T 100
-#define STRING_T 110
-#define IDENTIFIER_T 120
-#define INTEGER_T 130
-#define ASSIGNMENT_T 140
-#define AMPERSAND_T 150 
+#define SEMICOLON_T 80
+#define COMMA_T 90
+#define DOT_T 100
+#define TILDE_T 110
+#define STRING_T 120
+#define IDENTIFIER_T 130
+#define INTEGER_T 140
+#define ASSIGNMENT_T 150
+#define AMPERSAND_T 160 
 
-#define PROGRAM_T 160
-#define FUNCTION_T 170
-#define BEGIN_T 180
-#define END_T 190
-#define IF_T 200
-#define THEN_T 210
-#define ELSE_T 220
-#define WHILE_T 230
-#define DO_T 240
-#define COUT_T 250
-#define CIN_T 260
-#define ENDL_T 270
-#define INT_T 280
-#define BOOLEAN_T 290
-#define TRUE_T 300
-#define FALSE_T 310
+#define PROGRAM_T 170
+#define FUNCTION_T 180
+#define BEGIN_T 190
+#define END_T 200
+#define IF_T 210
+#define THEN_T 220
+#define ELSE_T 230
+#define WHILE_T 240
+#define DO_T 250
+#define COUT_T 260
+#define CIN_T 270
+#define ENDL_T 280
+#define INT_T 290
+#define BOOLEAN_T 300
+#define TRUE_T 310
+#define FALSE_T 320
 
-#define OTHER_T 320//Used in the precedence table.
-#define E_T 330//Used in shift reduce parser.
+#define OTHER_T 330//Used in the precedence table.
+#define E_T 340//Used in shift reduce parser.
 
-#define EOF_T 340
+#define EOF_T 350
 
 #define PROGRAM_KEYWORD Keyword(PROGRAM_T,"program")
 #define FUNCTION_KEYWORD Keyword(FUNCTION_T,"function")

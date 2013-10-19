@@ -31,12 +31,16 @@ void parserClass::parseStatement()
 		checkTokenAndGetNext(t,tokenClass(DO_T,NONE_ST,"do"));
 		parseStatement();
 		break;
+	case IF_T:
+		t = scanner.getToken();
+		parseExpr();
+		checkTokenAndGetNext(t,tokenClass(THEN_T,NONE_ST,"then"));
+		parseStatement();
+		parseFollowIf();
+		break;
 	case IDENTIFIER_T:
 		t=scanner.getToken();
-		checkTokenAndGetNext(t,tokenClass(ASSIGNMENT_T,NONE_ST,"="));
-		//Parsed "="
-		parseExpr();
-		checkTokenAndGetNext(t,tokenClass(SEMICOLON_T,NONE_ST,";"));
+		parseFollowID();
 		break;
 	default:
 		vector<string> found;
@@ -46,6 +50,47 @@ void parserClass::parseStatement()
 	}
 }
 
+void parserClass::parseFollowID()
+{
+	switch(t.type)
+	{
+	case ASSIGNMENT_T:
+		t = scanner.getToken();
+		parseExpr();
+		checkTokenAndGetNext(t,tokenClass(SEMICOLON_T,NONE_ST,";"));
+		break;
+	case TILDE_T:
+		t = scanner.getToken();
+		checkTokenAndGetNext(t,tokenClass(IDENTIFIER_T,NONE_ST,EMPTY_LEXEME));
+		break;
+	case LEFTPAREN_T:
+		t = scanner.getToken();
+		parseExpr();
+		parseFollowExpr();
+		checkTokenAndGetNext(t,tokenClass(RIGHTPAREN_T,NONE_ST,EMPTY_LEXEME));
+		break;
+	}
+}
+
+void parserClass::parseFollowExpr()
+{
+	if(t.type == COMMA_T)
+	{
+		t = scanner.getToken();
+		parseExpr();
+		parseFollowExpr();
+	}
+	//Do nothing otherwise
+}
+void parserClass::parseFollowIf()
+{
+	if(t.type == ELSE_T)
+	{
+		t = scanner.getToken();
+		parseStatement();
+	}
+	//Do nothing if the token is not ELSE_T
+}
 void parserClass::parseExpr()
 {
 	pStackClass stack;//Stack used in the algorithm.
@@ -195,15 +240,15 @@ void parserClass::printPrecedenceTable()
 
 void parserClass::setPre(int col,int row, Precedence pre)
 {
-	precedenceTable[typeToTableIndex(col)][typeToTableIndex(row)] = pre;
+	precedenceTable[tokenToTableIndex(tokenClass(col,NONE_ST,EMPTY_LEXEME))][tokenToTableIndex(tokenClass(row,NONE_ST,EMPTY_LEXEME))] = pre;
 }
 
-int parserClass::typeToTableIndex(int type)
+int parserClass::tokenToTableIndex(tokenClass token)
 {
-	if(isEndOfExpression(type))
+	if(isEndOfExpression(token))
 		return 9;
 
-	switch(type)
+	switch(token.type)
 	{
 	case RELOP_T:
 		return 0;
@@ -229,14 +274,10 @@ int parserClass::typeToTableIndex(int type)
 		return 10;
 	}
 }
-Precedence parserClass::prec(int firstType,int secondType)
-{
-	return precedenceTable[typeToTableIndex(firstType)][typeToTableIndex(secondType)];
-}
 
 Precedence parserClass::prec(tokenClass firstToken,tokenClass secondToken)
 {
-	return prec(firstToken.type,secondToken.type);
+	return precedenceTable[tokenToTableIndex(firstToken)][tokenToTableIndex(secondToken)];
 }
 bool parserClass::isValidRHS(std::vector<tokenClass> tokens)
 {
@@ -334,14 +375,11 @@ void parserClass::errorAndExit(string message)
 
 bool parserClass::isEndOfExpression(tokenClass token)
 {
-	if(isEndOfExpression(token.type))
-		return true;
-	return false;
-}
-bool parserClass::isEndOfExpression(int type)
-{
-	if(type == DO_T || type == SEMICOLON_T)
-		return true;
+	if(token.subtype == NONE_ST)
+	{
+		if(token.type == DO_T || token.type == SEMICOLON_T||token.type == THEN_T)
+			return true;
+	}
 	return false;
 }
 void parserClass::checkTokenAndGetNext(tokenClass token, tokenClass expected)
