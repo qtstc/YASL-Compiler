@@ -16,7 +16,14 @@ parserClass::parserClass()
 void parserClass::parseProgram()
 {
 	t = scanner.getToken();
-	parseStatement();
+	int count = 0;
+	while(true)
+	{
+		parseStatement();
+		cout<<endl<<"PARSED "<<count<<endl<<endl;
+		checkTokenAndGetNext(t,tokenClass(SEMICOLON_T,NONE_ST,EMPTY_LEXEME));
+		count++;
+	}
 	cout<< "YASLC-TQ has just compiled "<<scanner.numLinesProcessed()<<" lines successfully."<<endl;
 	scanner.close();
 }
@@ -42,14 +49,86 @@ void parserClass::parseStatement()
 		t=scanner.getToken();
 		parseFollowID();
 		break;
+	case BEGIN_T:
+		t=scanner.getToken();
+		parseFollowBegin();
+		break;
+	case CIN_T:
+		t= scanner.getToken();
+		parseFollowCin();
+		break;
+	case COUT_T:
+		t= scanner.getToken();
+		checkTokenAndGetNext(t,tokenClass(BITLEFT_T,NONE_ST,EMPTY_LEXEME));
+		parseFollowCout();
+		parseCoutTail();
+		break;
 	default:
 		vector<string> found;
 		found.push_back("while");
+		found.push_back("if");
 		found.push_back("identifier");
+		found.push_back("begin");
+		found.push_back("cin");
+		found.push_back("cout");
 		recurDescentErrorAndExit(t.lexeme,found);
 	}
 }
 
+void parserClass::parseFollowBegin()
+{
+	if(t.type == END_T)
+	{
+		t = scanner.getToken();
+		return;
+	}
+	parseStatement();
+	parseStatementTail();
+	checkTokenAndGetNext(t,tokenClass(END_T,NONE_ST,"end"));
+}
+
+void parserClass::parseStatementTail()
+{
+	if(t.type == SEMICOLON_T)
+	{
+		t = scanner.getToken();
+		parseStatement();
+		parseStatementTail();
+	}
+}
+
+void parserClass::parseFollowCin()
+{
+	if(t.type == BITRIGHT_T)
+	{
+		t = scanner.getToken();
+		checkTokenAndGetNext(t,tokenClass(IDENTIFIER_T,NONE_ST,EMPTY_LEXEME));
+		parseFollowCin();
+	}
+}
+
+void parserClass::parseCoutTail()
+
+	if(t.type == BITLEFT_T)
+	{
+		t = scanner.getToken();
+		parseFollowCout();
+	}
+}
+void parserClass::parseFollowCout()
+{
+	switch(t.type)
+	{
+	case STRING_T:
+		t = scanner.getToken();
+		break;
+	case ENDL_T:
+		t = scanner.getToken();
+		break;
+	default:
+		parseExpr();
+	}
+}
 void parserClass::parseFollowID()
 {
 	switch(t.type)
@@ -57,7 +136,6 @@ void parserClass::parseFollowID()
 	case ASSIGNMENT_T:
 		t = scanner.getToken();
 		parseExpr();
-		checkTokenAndGetNext(t,tokenClass(SEMICOLON_T,NONE_ST,";"));
 		break;
 	case TILDE_T:
 		t = scanner.getToken();
@@ -102,7 +180,7 @@ void parserClass::parseExpr()
 		tokenClass topTerm = stack.getTopMostTerminal();
 		//Termination condition.
 		//It should be met if the expression is valid and terminate with semicolon
-		if(isEndOfExpression(t) && isEndOfExpression(topTerm))
+		if(isEndOfExpression(t) && topTerm.type == SEMICOLON_T)
 			return;
 		Precedence p = prec(topTerm,t);//Store the precedence because it’s checked multiple times.
 		if(p == LESS_PRECEDENCE || p == EQUAL_PRECEDENCE)//Shift
@@ -143,6 +221,8 @@ void parserClass::parseExpr()
 			errorAndExit("Invalid expression");
 	}
 }
+
+
 
 void parserClass::buildPrecedenceTable()
 {
@@ -245,8 +325,8 @@ void parserClass::setPre(int col,int row, Precedence pre)
 
 int parserClass::tokenToTableIndex(tokenClass token)
 {
-	if(isEndOfExpression(token))
-		return 9;
+	//Right parenthesis is an end of expression,
+	//but we use its original precedence in the table.
 
 	switch(token.type)
 	{
@@ -270,7 +350,10 @@ int parserClass::tokenToTableIndex(tokenClass token)
 		return 8;
 	case SEMICOLON_T:
 		return 9;
-	default://Everything else is considered other.
+	default:
+		if(isEndOfExpression(token))
+			return 9;
+		//Everything else is considered other.
 		return 10;
 	}
 }
@@ -377,7 +460,14 @@ bool parserClass::isEndOfExpression(tokenClass token)
 {
 	if(token.subtype == NONE_ST)
 	{
-		if(token.type == DO_T || token.type == SEMICOLON_T||token.type == THEN_T)
+		if(token.type == DO_T || 
+			token.type == SEMICOLON_T||
+			token.type == THEN_T ||
+			token.type == BITLEFT_T ||
+			token.type == END_T ||
+			token.type == ELSE_T ||
+			token.type == COMMA_T ||
+			token.type == RIGHTPAREN_T)//Note: checking right paren here.
 			return true;
 	}
 	return false;

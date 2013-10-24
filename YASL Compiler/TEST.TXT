@@ -1,4 +1,73 @@
 {$p+}
+
+//*********************************Not*Nested*********************
+//while and cin/cout
+while((((1 <> 2) < 3) - 4) mod 5) do
+    cin;
+while 1<>2>3<(4==5)<=6>=7 do
+    cin >> ident;
+while ((((1 <> 2) < 3) - 4) mod 5) do
+    cout << endl;
+while ((((1 <> 2) < 3) - 4) mod 5) do
+    cout << 'string constant()*&^*&GJ';
+while ((1+1)*(2+3)) do
+    cout << ((((1 <> 2) < 3) - 4) mod 5);
+while 13 <> true do
+    cout << 12*1213 <> true;
+
+//if
+if(expression) then cout<<expression;
+if expression then cout<<yes else cout<<no;
+
+//assignment
+id = 1 + 1;
+idd = (1+2*3)*a-(x);
+
+//begin/end
+begin end;
+begin cin end;
+begin
+cin;
+cout<<1+1;
+if true then cin else cin;
+while true do cin//Notice no ; here
+end;
+
+//function call
+func;
+func(p1,p2);
+func(p1);
+func(1+1);
+fuc(1+1,p2,(3*3)+1 div 2);
+
+//swap
+s1~s2;
+
+//*************************************Nested****************
+//if
+if true then 
+    while((((1 <> 2) < 3) - 4) mod 5) do cin
+else 
+    if expression then cout<<yes else cout<<no;
+if(1+(1*2)+(3)) then while 3+2 do
+	begin
+		cin;
+		cout<<1+1;
+		if true then cin else cin;
+		while true do cin//Notice no ; here
+	end;
+if(1+(1*2)+(3)) then while 3+2 do
+	while ((x+2) <> (y+6)) do
+	  while ((z>6) and (domore)) do
+		 while ((z>6) and (domore)) do
+	while ((x+2) <> (y+6)) do
+	  while ((z>6) and (domore)) do
+		 while ((z>6) and (domore)) do
+		  x= (y+z div 2)
+else if 4 and (5) then cin
+else if 3 + 2 then while true do begin func(p1,p2) end;
+
+//While
 while ((x+2) <> (y+6)) do
   while ((z>6) and (domore)) do
      while ((z>6) and (domore)) do
@@ -6,3 +75,17 @@ while ((x+2) <> (y+6)) do
   while ((z>6) and (domore)) do
      while ((z>6) and (domore)) do
       x= (y+z div 2);
+
+while(1+1) do 
+	if 3 and(2) then 
+		begin
+			cin;
+			func(p1,p2);
+			if (2+3) then i = true else 
+			begin
+				while (true) do it
+			end
+		end
+	else k = false;
+
+

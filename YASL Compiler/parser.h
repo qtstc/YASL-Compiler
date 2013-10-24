@@ -24,6 +24,11 @@ private:
 	void parseFollowID();
 	void parseFollowIf();
 	void parseFollowExpr();
+	void parseFollowBegin();
+	void parseStatementTail();
+	void parseFollowCin();
+	void parseFollowCout();
+	void parseCoutTail();
 
 	Precedence precedenceTable[PRECEDENCE_TABLE_DIMENSION][PRECEDENCE_TABLE_DIMENSION];
 	scannerClass scanner;
