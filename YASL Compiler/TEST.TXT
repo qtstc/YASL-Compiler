@@ -1,19 +1,39 @@
 {$p+}
+//Fail cases
+{
+cin << wrongdir;
+cout >> endl;
+;//empty statent
+while;do;
+while true do;
+while ; do cin;
+while true cin;//missing do
+if true cin; //missing then
+if true then cin else;//nothing after else
+begin cin;end;
+func(hah,hsx,);
+id~;
+do();
+}
+
 
 //*********************************Not*Nested*********************
-//while and cin/cout
+//while
 while((((1 <> 2) < 3) - 4) mod 5) do
     cin;
 while 1<>2>3<(4==5)<=6>=7 do
     cin >> ident;
-while ((((1 <> 2) < 3) - 4) mod 5) do
-    cout << endl;
-while ((((1 <> 2) < 3) - 4) mod 5) do
-    cout << 'string constant()*&^*&GJ';
 while ((1+1)*(2+3)) do
     cout << ((((1 <> 2) < 3) - 4) mod 5);
 while 13 <> true do
     cout << 12*1213 <> true;
+
+//cin/cout
+cin;
+cin >> ident;
+cout << haha << endl << endl;
+cout << 'string constant()*&^*&GJ';
+cout << endl;
 
 //if
 if(expression) then cout<<expression;

@@ -21,7 +21,7 @@ void parserClass::parseProgram()
 	{
 		parseStatement();
 		cout<<endl<<"PARSED "<<count<<endl<<endl;
-		checkTokenAndGetNext(t,tokenClass(SEMICOLON_T,NONE_ST,EMPTY_LEXEME));
+		checkTokenAndGetNext(t,tokenClass(SEMICOLON_T,NONE_ST,";"));
 		count++;
 	}
 	cout<< "YASLC-TQ has just compiled "<<scanner.numLinesProcessed()<<" lines successfully."<<endl;
@@ -59,7 +59,7 @@ void parserClass::parseStatement()
 		break;
 	case COUT_T:
 		t= scanner.getToken();
-		checkTokenAndGetNext(t,tokenClass(BITLEFT_T,NONE_ST,EMPTY_LEXEME));
+		checkTokenAndGetNext(t,tokenClass(BITLEFT_T,NONE_ST,"<<"));
 		parseFollowCout();
 		parseCoutTail();
 		break;
@@ -102,17 +102,18 @@ void parserClass::parseFollowCin()
 	if(t.type == BITRIGHT_T)
 	{
 		t = scanner.getToken();
-		checkTokenAndGetNext(t,tokenClass(IDENTIFIER_T,NONE_ST,EMPTY_LEXEME));
+		checkTokenAndGetNext(t,tokenClass(IDENTIFIER_T,NONE_ST,"identifier"));
 		parseFollowCin();
 	}
 }
 
 void parserClass::parseCoutTail()
-
+{
 	if(t.type == BITLEFT_T)
 	{
 		t = scanner.getToken();
 		parseFollowCout();
+		parseCoutTail();
 	}
 }
 void parserClass::parseFollowCout()
@@ -139,13 +140,13 @@ void parserClass::parseFollowID()
 		break;
 	case TILDE_T:
 		t = scanner.getToken();
-		checkTokenAndGetNext(t,tokenClass(IDENTIFIER_T,NONE_ST,EMPTY_LEXEME));
+		checkTokenAndGetNext(t,tokenClass(IDENTIFIER_T,NONE_ST,"identifier"));
 		break;
 	case LEFTPAREN_T:
 		t = scanner.getToken();
 		parseExpr();
 		parseFollowExpr();
-		checkTokenAndGetNext(t,tokenClass(RIGHTPAREN_T,NONE_ST,EMPTY_LEXEME));
+		checkTokenAndGetNext(t,tokenClass(RIGHTPAREN_T,NONE_ST,")"));
 		break;
 	}
 }
@@ -172,7 +173,7 @@ void parserClass::parseFollowIf()
 void parserClass::parseExpr()
 {
 	pStackClass stack;//Stack used in the algorithm.
-	stack.push(tokenClass(SEMICOLON_T,NONE_ST,EMPTY_LEXEME));//First push a semicolon onto the stack.
+	stack.push(tokenClass(SEMICOLON_T,NONE_ST,";"));//First push a semicolon onto the stack.
 	if(isEndOfExpression(t))
 		errorAndExit("Empty expression");
 	while(true)
@@ -437,7 +438,10 @@ bool parserClass::isValidRHS(std::vector<tokenClass> tokens)
 
 void parserClass::recurDescentErrorAndExit(string found, vector<string> expected)
 {
-	string s = "Found <"+found+"> when expecting one of <";
+	string s = "Found <"+found+"> when expecting ";
+	if(expected.size() > 1)
+		s += "one of ";
+	s += "<";
 	for(int i = 0;i<expected.size()-1;++i)
 	{
 		s += expected[i]+",";
