@@ -16,16 +16,117 @@ parserClass::parserClass()
 void parserClass::parseProgram()
 {
 	t = scanner.getToken();
-	int count = 0;
+	checkTokenAndGetNext(t,tokenClass(PROGRAM_T,NONE_ST,"program"));
+	checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
+	checkTokenAndGetNext(t,SEMICOLON_TOKEN);
+	parseBlock();
+	checkTokenAndGetNext(t,tokenClass(DOT_T,NONE_ST,"."));
+	/*int count = 0;
 	while(true)
 	{
 		parseStatement();
 		cout<<endl<<"PARSED "<<count<<endl<<endl;
 		checkTokenAndGetNext(t,tokenClass(SEMICOLON_T,NONE_ST,";"));
 		count++;
-	}
+	}*/
 	cout<< "YASLC-TQ has just compiled "<<scanner.numLinesProcessed()<<" lines successfully."<<endl;
 	scanner.close();
+}
+
+
+void parserClass::parseVarDecs()
+{
+	if(!tryParseType())
+		return;
+	parseIdentList();
+	checkTokenAndGetNext(t,SEMICOLON_TOKEN);
+	parseVarDecs();
+}
+
+bool parserClass::tryParseType()
+{
+	if(t.type == INT_T || t.type == BOOLEAN_T)
+	{
+		t = scanner.getToken();
+		return true;
+	}
+	return false;
+}
+
+void parserClass::parseIdentList()
+{
+	checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
+	parseIdentTail();
+}
+
+void parserClass::parseIdentTail()
+{
+	if(t.type == COMMA_T)
+	{
+		t = scanner.getToken();
+		parseIdentList();
+	}
+}
+
+void parserClass::parseFuncDecs()
+{
+	if(t.type != FUNCTION_T)
+		return;
+	t = scanner.getToken();
+	checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
+	parseFuncDecTail();
+	checkTokenAndGetNext(t,SEMICOLON_TOKEN);
+	parseBlock();
+	checkTokenAndGetNext(t,SEMICOLON_TOKEN);
+	parseFuncDecs();
+}
+void parserClass::parseFuncDecTail()
+{
+	if(t.type != LEFTPAREN_T)
+		return;
+	t = scanner.getToken();
+	parseParamList();
+	checkTokenAndGetNext(t,tokenClass(RIGHTPAREN_T,NONE_ST,")"));
+}
+void parserClass::parseParamList()
+{
+	if(tryParseType())
+	{
+		parseTypeTail();
+		return;
+	}
+	vector<string> expected;
+	expected.push_back("int");
+	expected.push_back("boolean");
+	recurDescentErrorAndExit(t.lexeme,expected);
+}
+void parserClass::parseTypeTail()
+{
+	if(t.type == AMPERSAND_T)
+		t = scanner.getToken();
+	
+	checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
+	parseFuncIdentTail();//NOTE:it's func ident tail here!
+}
+void parserClass::parseFuncIdentTail()
+{
+	if(t.type == COMMA_T)
+	{
+		t= scanner.getToken();
+		parseParamList();
+	}
+}
+void parserClass::parseBlock()
+{
+	parseVarDecs();
+	parseFuncDecs();
+	parseProgBody();
+}
+
+void parserClass::parseProgBody()
+{
+	checkTokenAndGetNext(t,tokenClass(BEGIN_T,NONE_ST,"begin"));
+	parseFollowBegin();
 }
 
 void parserClass::parseStatement()
@@ -64,14 +165,14 @@ void parserClass::parseStatement()
 		parseCoutTail();
 		break;
 	default:
-		vector<string> found;
-		found.push_back("while");
-		found.push_back("if");
-		found.push_back("identifier");
-		found.push_back("begin");
-		found.push_back("cin");
-		found.push_back("cout");
-		recurDescentErrorAndExit(t.lexeme,found);
+		vector<string> expected;
+		expected.push_back("while");
+		expected.push_back("if");
+		expected.push_back("identifier");
+		expected.push_back("begin");
+		expected.push_back("cin");
+		expected.push_back("cout");
+		recurDescentErrorAndExit(t.lexeme,expected);
 	}
 }
 
@@ -102,7 +203,7 @@ void parserClass::parseFollowCin()
 	if(t.type == BITRIGHT_T)
 	{
 		t = scanner.getToken();
-		checkTokenAndGetNext(t,tokenClass(IDENTIFIER_T,NONE_ST,"identifier"));
+		checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
 		parseFollowCin();
 	}
 }
@@ -140,7 +241,7 @@ void parserClass::parseFollowID()
 		break;
 	case TILDE_T:
 		t = scanner.getToken();
-		checkTokenAndGetNext(t,tokenClass(IDENTIFIER_T,NONE_ST,"identifier"));
+		checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
 		break;
 	case LEFTPAREN_T:
 		t = scanner.getToken();
@@ -173,7 +274,7 @@ void parserClass::parseFollowIf()
 void parserClass::parseExpr()
 {
 	pStackClass stack;//Stack used in the algorithm.
-	stack.push(tokenClass(SEMICOLON_T,NONE_ST,";"));//First push a semicolon onto the stack.
+	stack.push(SEMICOLON_TOKEN);//First push a semicolon onto the stack.
 	if(isEndOfExpression(t))
 		errorAndExit("Empty expression");
 	while(true)
@@ -438,15 +539,15 @@ bool parserClass::isValidRHS(std::vector<tokenClass> tokens)
 
 void parserClass::recurDescentErrorAndExit(string found, vector<string> expected)
 {
-	string s = "Found <"+found+"> when expecting ";
+	string s = "Found ["+found+"] when expecting ";
 	if(expected.size() > 1)
 		s += "one of ";
-	s += "<";
+	s += "[";
 	for(int i = 0;i<expected.size()-1;++i)
 	{
 		s += expected[i]+",";
 	}
-	s += expected[expected.size()-1]+">";
+	s += expected[expected.size()-1]+"]";
 	errorAndExit(s);
 }
 

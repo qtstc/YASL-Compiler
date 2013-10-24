@@ -11,6 +11,9 @@
 #include "pstack.h"
 #include <vector>
 
+#define IDENTIFIER_TOKEN tokenClass(IDENTIFIER_T,NONE_ST,"identifier")
+#define SEMICOLON_TOKEN tokenClass(SEMICOLON_T,NONE_ST,";")
+
 class parserClass
 {
 public:
@@ -29,20 +32,42 @@ private:
 	void parseFollowCin();
 	void parseFollowCout();
 	void parseCoutTail();
+	void parseVarDecs();
+	//try to parse either an int or boolean token. 
+	//Returns true and get next token if the next token is a type, false otherwise
+	void parseIdentList();
+	bool tryParseType();
+	void parseIdentTail();
+	void parseFuncDecs();
+	void parseFuncDecTail();
+	void parseParamList();
+	void parseTypeTail();
+	void parseFuncIdentTail();
+	void parseBlock();
+	void parseProgBody();
 
 	Precedence precedenceTable[PRECEDENCE_TABLE_DIMENSION][PRECEDENCE_TABLE_DIMENSION];
 	scannerClass scanner;
-	void buildPrecedenceTable();//Build the precedence table, called in constructor.
-	int tokenToTableIndex(tokenClass token);//Convert the token used by scanner to table index used in precedenceTable.
-	void setPre(int col,int row, Precedence pre);//Set the precedence. The first two parameters are type index not table index.
-	void printPrecedenceTable();//Output precedence table to a csv file for debugging.
-	//Precedence prec(int firstType,int secondType);//Get the precedence. The parameters are type index.
-	Precedence prec(tokenClass firstToken,tokenClass secondToken);//Get the precedence of two tokens.
-	bool isValidRHS(std::vector<tokenClass> tokens);//Check whether the RHS is valid.
-	void recurDescentErrorAndExit(string found, vector<string> expected);//Exit the program when read an unexpected token for recursive descent parser.
-	void errorAndExit(string message);//Exit the prorgam with the given message. Call this for syntax error.
-	void checkTokenAndGetNext(tokenClass token, tokenClass expected);//Check whether two token matches in the recursive descent parser.
-	bool isEndOfExpression(tokenClass token);//Check whether a token is the end of an expression.
+	//Build the precedence table, called in constructor.
+	void buildPrecedenceTable();
+	//Convert the token used by scanner to table index used in precedenceTable.
+	int tokenToTableIndex(tokenClass token);
+	//Set the precedence. The first two parameters are type index not table index.
+	void setPre(int col,int row, Precedence pre);
+	//Output precedence table to a csv file for debugging.
+	void printPrecedenceTable();
+	//Get the precedence of two tokens.
+	Precedence prec(tokenClass firstToken,tokenClass secondToken);
+	//Check whether the RHS is valid.
+	bool isValidRHS(std::vector<tokenClass> tokens);
+	//Exit the program when read an unexpected token for recursive descent parser.
+	void recurDescentErrorAndExit(string found, vector<string> expected);
+	//Exit the prorgam with the given message. Call this for syntax error.
+	void errorAndExit(string message);
+	//Check whether two token matches in the recursive descent parser.
+	void checkTokenAndGetNext(tokenClass token, tokenClass expected);
+	//Check whether a token is the end of an expression.
+	bool isEndOfExpression(tokenClass token);
 };
 
 #endif
