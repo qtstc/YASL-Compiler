@@ -20,7 +20,6 @@ public:
 	parserClass();
 	void parseProgram();
 private:
-	//For project 4
 	tokenClass t;
 	void parseStatement();
 	void parseExpr();//Parse expressions use shift and reduce algorithm. If the expression is invalid, program will be terminated.
@@ -35,8 +34,8 @@ private:
 	void parseVarDecs();
 	//try to parse either an int or boolean token. 
 	//Returns true and get next token if the next token is a type, false otherwise
-	void parseIdentList();
 	bool tryParseType();
+	void parseIdentList();
 	void parseIdentTail();
 	void parseFuncDecs();
 	void parseFuncDecTail();
