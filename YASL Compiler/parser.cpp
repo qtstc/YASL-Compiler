@@ -17,9 +17,11 @@ void parserClass::parseProgram()
 {
 	t = scanner.getToken();
 	checkTokenAndGetNext(t,tokenClass(PROGRAM_T,NONE_ST,"program"));
+	scanner.symbolTable.tableAddLevel(t.lexeme);
 	checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
 	checkTokenAndGetNext(t,SEMICOLON_TOKEN);
 	parseBlock();
+	scanner.symbolTable.tableDelLevel();
 	checkTokenAndGetNext(t,tokenClass(DOT_T,NONE_ST,"."));
 	/*int count = 0;
 	while(true)
@@ -36,21 +38,27 @@ void parserClass::parseProgram()
 
 void parserClass::parseVarDecs()
 {
-	if(!tryParseType())
+	SymbolType type = tryParseType();
+	if(type == INVALID_TYPE)
 		return;
 	parseIdentList();
 	checkTokenAndGetNext(t,SEMICOLON_TOKEN);
 	parseVarDecs();
 }
 
-bool parserClass::tryParseType()
+SymbolType parserClass::tryParseType()
 {
-	if(t.type == INT_T || t.type == BOOLEAN_T)
+	if(t.type == INT_T)
 	{
 		t = scanner.getToken();
-		return true;
+		return INT_TYPE;
 	}
-	return false;
+	else if (t.type == BOOLEAN_T)
+	{
+		t = scanner.getToken();
+		return BOOLEAN_TYPE;
+	}
+	return INVALID_TYPE;
 }
 
 void parserClass::parseIdentList()
@@ -73,10 +81,12 @@ void parserClass::parseFuncDecs()
 	if(t.type != FUNCTION_T)
 		return;
 	t = scanner.getToken();
+	scanner.symbolTable.tableAddLevel(t.lexeme);
 	checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
 	parseFuncDecTail();
 	checkTokenAndGetNext(t,SEMICOLON_TOKEN);
 	parseBlock();
+	scanner.symbolTable.tableDelLevel();
 	checkTokenAndGetNext(t,SEMICOLON_TOKEN);
 	parseFuncDecs();
 }
@@ -90,7 +100,8 @@ void parserClass::parseFuncDecTail()
 }
 void parserClass::parseParamList()
 {
-	if(tryParseType())
+	SymbolType type = tryParseType();
+	if(type != INVALID_TYPE)
 	{
 		parseTypeTail();
 		return;

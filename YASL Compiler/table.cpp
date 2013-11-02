@@ -50,15 +50,16 @@ string SymbolNode::toString()
 	s += ", type=";
 	s += symbolTypeStrings[type];
 	s += ", offset=";
-	s += offset;
+	s += to_string(offset);
 	s += ", nesting level=";
-	s += nestingLevel;
+	s += to_string(nestingLevel);
 	if(parameterTop != NULL)
 	{
 		s+="\n\tparameters:";
 		SymbolNode *p = parameterTop;
 		while(p != NULL)
 			s += "\n\t"+p->toString();
+		p = p->next;
 	}
 	return s;
 }
@@ -106,7 +107,7 @@ string TableLevel::toString()
 	string s = "name=";
 	s += name;
 	s += ", nesting level=";
-	s += nestingLevel;
+	s += to_string(nestingLevel);
 	if(top != NULL)
 	{
 		SymbolNode *p = top;
@@ -169,6 +170,7 @@ string tableClass::toString()
 	while(p != NULL)
 	{
 		s += "\n" + p->toString();
+		p= p->next;
 	}
 	return s;
 }

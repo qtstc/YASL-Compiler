@@ -4,10 +4,12 @@
 //The definitions of these routines can be found in table.cpp
 
 
-#ifndef _pstack
-#define _pstack
+#ifndef _table
+#define _table
 
-#include "scanner.h"
+#include <string>
+#include "general.h"
+using namespace std;
 
 class SymbolNode
 {

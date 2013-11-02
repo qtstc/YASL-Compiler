@@ -12,6 +12,7 @@
 #include <fstream>
 #include <string>
 #include "general.h"
+#include "table.h"
 
 //Class used to store a token.
 //The type and subtype should be constants defined in general.h.
@@ -78,6 +79,7 @@ public:
 	void printCurrentLine();
 	int numLinesProcessed();
 	bool expressionDebugging;//Flag used by parser to decide whether to print expression debugging msg.
+	tableClass symbolTable;
 private:
 	State stateMatrix[MAX_STATE][MAX_CHAR];
 	fileManagerClass fileManager;

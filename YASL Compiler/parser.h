@@ -33,8 +33,8 @@ private:
 	void parseCoutTail();
 	void parseVarDecs();
 	//try to parse either an int or boolean token. 
-	//Returns true and get next token if the next token is a type, false otherwise
-	bool tryParseType();
+	//Returns the type of the symbol parsed.
+	SymbolType tryParseType();
 	void parseIdentList();
 	void parseIdentTail();
 	void parseFuncDecs();

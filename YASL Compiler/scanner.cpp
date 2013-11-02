@@ -272,6 +272,8 @@ tokenClass scannerClass::getToken()
 				expressionDebugging = true;
 			else if (currentLexeme == "{$e-}")
 				expressionDebugging = false;
+			else if (currentLexeme == "{$s+}")
+				cout<<symbolTable.toString()<<endl;
 			else
 				cout<<"Warning, compiler directive "+currentLexeme+" is undefined."<<endl;
 			break;

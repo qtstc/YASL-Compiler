@@ -6,6 +6,8 @@
 #ifndef _general
 #define _general
 
+#include <sstream>
+
 const int MAXCELLSPERSTRING = 82;  //80 characters as well as \n plus \0.
 
 //Definition used in scanner.cpp
@@ -104,20 +106,28 @@ enum Precedence {GREATER_PRECEDENCE,LESS_PRECEDENCE,EQUAL_PRECEDENCE,ERROR_PRECE
 #define PRECEDENCE_TABLE_DIMENSION 11
 
 //definition used in table.cpp
-enum SymbolKind{FUNC_ID,VAR_ID,REF_PARAM,VALUE_PARAM,INVALID_KIND};
+enum SymbolKind{INVALID_KIND,FUNC_ID,VAR_ID,REF_PARAM,VALUE_PARAM};
 const char* const symbolKindStrings[] = {
-  "func-id", 
+    "invalid-kind",
+	"func-id", 
   "var-id",
   "ref-param",
-  "value-param",
-  "invalid-kind"
+  "value-param"
 };
-enum SymbolType{FUNC_ID_TYPE,INT_TYPE,BOOLEAN_TYPE,INVALID_TYPE};
+enum SymbolType{INVALID_TYPE,FUNC_ID_TYPE,INT_TYPE,BOOLEAN_TYPE};
 const char*  const symbolTypeStrings[] = {
+		"invalid-type",
 	"func-id-type",
 	"int-type",
-	"boolean-type",
-	"invalid-type"
+	"boolean-type"
 };
+
+template <typename T>
+std::string to_string(T value)
+{
+	std::ostringstream os ;
+	os << value ;
+	return os.str() ;
+}
 
 #endif
