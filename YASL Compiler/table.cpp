@@ -16,9 +16,14 @@ void SymbolNode::addParameter(SymbolNode* parameter)
 	//First making sure the symbol is a function.
 	if(kind != FUNC_ID)
 		throw exception("Adding parameter to a non-function symbol.");
+	if(parameter->kind != REF_PARAM && parameter-> kind!= VALUE_PARAM)
+		throw exception("Symbol kind is neither REF_PARAM nor VALUE_PARAM.");
+	parameter->nestingLevel = nestingLevel;
+	int offset = 0;
 	if(parameterTop == NULL)
 	{
 		parameterTop = parameter;
+		parameter->offset = offset;
 		return;
 	}
 	//Add the new paramter to the end of the list,
@@ -26,8 +31,13 @@ void SymbolNode::addParameter(SymbolNode* parameter)
 	//will be the same as the sequence at which
 	//the parameter appears in the function definition.
 	SymbolNode* end = parameterTop;
+	offset++;
 	while(end->next != NULL)
+	{
 		end = end->next;
+		offset++;
+	}
+	parameter->offset = offset;
 	end->next = parameter;
 }
 SymbolNode::~SymbolNode()
@@ -43,6 +53,24 @@ SymbolNode::~SymbolNode()
 
 string SymbolNode::toString()
 {
+	string s = toStringForParameter();
+	s += ", nesting level=";
+	s += to_string(nestingLevel);
+	if(parameterTop != NULL)
+	{
+		s+="\n\tparameters:";
+		SymbolNode *p = parameterTop;
+		while(p != NULL)
+		{
+			s += "\n\t"+p->toStringForParameter();
+		    p = p->next;
+		}	
+	}
+	return s;
+}
+
+string SymbolNode::toStringForParameter()
+{
 	string s = "lexeme=";
 	s += lexeme;
 	s += ", kind=";
@@ -51,16 +79,6 @@ string SymbolNode::toString()
 	s += symbolTypeStrings[type];
 	s += ", offset=";
 	s += to_string(offset);
-	s += ", nesting level=";
-	s += to_string(nestingLevel);
-	if(parameterTop != NULL)
-	{
-		s+="\n\tparameters:";
-		SymbolNode *p = parameterTop;
-		while(p != NULL)
-			s += "\n\t"+p->toString();
-		p = p->next;
-	}
 	return s;
 }
 
@@ -72,7 +90,9 @@ bool TableLevel::addSymbol(SymbolNode* node)
 	if(lookup(node->lexeme) != NULL)
 		return false;
 	node->nestingLevel = nestingLevel;
-	node->offset = nextOffset++;
+	node->offset = nextOffset;
+	if(node->kind != FUNC_ID)
+		nextOffset++;
 	//Just add to the front.
 	node->next = top;
 	top = node;
@@ -173,6 +193,16 @@ string tableClass::toString()
 		p= p->next;
 	}
 	return s;
+}
+
+void tableClass::addFunctionParameter(SymbolNode* parameter)
+{
+	if(top == NULL || top->next == NULL)
+		throw exception("Cannot add parameter because scope table is missing.");
+	TableLevel* lastLevel = top->next;
+	if(lastLevel->top == NULL)
+		throw exception("Cannot add parameter because function identifier is missing in the table.");
+	lastLevel->top->addParameter(parameter);
 }
 
 tableClass::~tableClass()

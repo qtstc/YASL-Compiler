@@ -35,12 +35,12 @@ private:
 	//try to parse either an int or boolean token. 
 	//Returns the type of the symbol parsed.
 	SymbolType tryParseType();
-	void parseIdentList();
-	void parseIdentTail();
+	void parseIdentList(SymbolType type);
+	void parseIdentTail(SymbolType type);
 	void parseFuncDecs();
 	void parseFuncDecTail();
 	void parseParamList();
-	void parseTypeTail();
+	void parseTypeTail(SymbolType type);
 	void parseFuncIdentTail();
 	void parseBlock();
 	void parseProgBody();

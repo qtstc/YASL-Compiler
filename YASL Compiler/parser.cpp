@@ -41,7 +41,7 @@ void parserClass::parseVarDecs()
 	SymbolType type = tryParseType();
 	if(type == INVALID_TYPE)
 		return;
-	parseIdentList();
+	parseIdentList(type);
 	checkTokenAndGetNext(t,SEMICOLON_TOKEN);
 	parseVarDecs();
 }
@@ -61,18 +61,22 @@ SymbolType parserClass::tryParseType()
 	return INVALID_TYPE;
 }
 
-void parserClass::parseIdentList()
+void parserClass::parseIdentList(SymbolType type)
 {
+	SymbolNode* symbol = new SymbolNode(t.lexeme,VAR_ID,type);
+	//Check duplicate and throw an error if duplicate is found.
+	if(!scanner.symbolTable.tableAddEntry(symbol))
+		errorAndExit("Duplicate identifier in the same scope.");
 	checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
-	parseIdentTail();
+	parseIdentTail(type);
 }
 
-void parserClass::parseIdentTail()
+void parserClass::parseIdentTail(SymbolType type)
 {
 	if(t.type == COMMA_T)
 	{
 		t = scanner.getToken();
-		parseIdentList();
+		parseIdentList(type);
 	}
 }
 
@@ -81,6 +85,9 @@ void parserClass::parseFuncDecs()
 	if(t.type != FUNCTION_T)
 		return;
 	t = scanner.getToken();
+	//First add the function to the table in cuurent scope
+	scanner.symbolTable.tableAddEntry(new SymbolNode(t.lexeme,FUNC_ID,FUNC_ID_TYPE));
+    //Then create a new level of table for the function
 	scanner.symbolTable.tableAddLevel(t.lexeme);
 	checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
 	parseFuncDecTail();
@@ -103,7 +110,7 @@ void parserClass::parseParamList()
 	SymbolType type = tryParseType();
 	if(type != INVALID_TYPE)
 	{
-		parseTypeTail();
+		parseTypeTail(type);
 		return;
 	}
 	vector<string> expected;
@@ -111,11 +118,16 @@ void parserClass::parseParamList()
 	expected.push_back("boolean");
 	recurDescentErrorAndExit(t.lexeme,expected);
 }
-void parserClass::parseTypeTail()
+void parserClass::parseTypeTail(SymbolType type)
 {
+	SymbolKind kind = VALUE_PARAM;
 	if(t.type == AMPERSAND_T)
+	{
 		t = scanner.getToken();
-	
+		kind = REF_PARAM;
+	}
+	scanner.symbolTable.addFunctionParameter(new SymbolNode(t.lexeme,kind,type));
+	scanner.symbolTable.tableAddEntry(new SymbolNode(t.lexeme,kind,type));
 	checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
 	parseFuncIdentTail();//NOTE:it's func ident tail here!
 }

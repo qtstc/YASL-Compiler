@@ -1,10 +1,22 @@
-{$s+}
-program taotest;
-{$s+}
-function func1;{$s+}
+program demo;
+	int abc;
+	int cde;
+	
+	function fee;
 begin
 end;
-{$s+}
+
+function foo (int &ppp, boolean qqq);
+int  abc;
+boolean  bb5;
 begin
-end.
+ppp = 6;
+qqq = true
 {$s+}
+end;
+
+begin
+  abc = 7;
+  foo (abc, abc)  {note the type error will not be detected yet}
+  {$s+}
+end.

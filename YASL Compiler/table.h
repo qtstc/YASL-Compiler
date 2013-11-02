@@ -30,6 +30,7 @@ public:
 	//a linked list of the formal parameters for the function.
 	SymbolNode *parameterTop;
 	string toString();
+	string toStringForParameter();
 };
 
 class TableLevel
@@ -94,7 +95,7 @@ public:
 	*/
 	SymbolNode* tableLookup(string lexeme);
 	string toString();
-	friend ostream& operator<<(std::ostream &strm, const tableClass &tb);
+	void addFunctionParameter(SymbolNode* parameter);
 private:
 	TableLevel *top;
 	int nextNestingLevel;
