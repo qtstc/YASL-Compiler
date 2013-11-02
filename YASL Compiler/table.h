@@ -23,7 +23,10 @@ public:
 	int offset;
 	//The nesting level of the table that this entry is contained in.
 	int nestingLevel;
-	void addParameter(SymbolNode* parameter);
+	//add parameter, only use when the symbol is a function.
+	bool addParameter(SymbolNode* parameter);
+	//the number of parameters the function has
+	int numOfParams;
 	//Points to next symbol in the list.
 	SymbolNode *next;
 	//If (kind == FUNC_ID) then store a pointer to 
@@ -95,7 +98,7 @@ public:
 	*/
 	SymbolNode* tableLookup(string lexeme);
 	string toString();
-	void addFunctionParameter(SymbolNode* parameter);
+	bool addFunctionParameter(SymbolNode* parameter);
 private:
 	TableLevel *top;
 	int nextNestingLevel;

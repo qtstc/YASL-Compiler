@@ -8,10 +8,10 @@
 #include "table.h"
 
 
-SymbolNode::SymbolNode(string lexeme, SymbolKind kind, SymbolType type):lexeme(lexeme),kind(kind),type(type),parameterTop(NULL),next(NULL)
+SymbolNode::SymbolNode(string lexeme, SymbolKind kind, SymbolType type):lexeme(lexeme),kind(kind),type(type),parameterTop(NULL),next(NULL),numOfParams(0)
 {}
 
-void SymbolNode::addParameter(SymbolNode* parameter)
+bool SymbolNode::addParameter(SymbolNode* parameter)
 {
 	//First making sure the symbol is a function.
 	if(kind != FUNC_ID)
@@ -19,26 +19,28 @@ void SymbolNode::addParameter(SymbolNode* parameter)
 	if(parameter->kind != REF_PARAM && parameter-> kind!= VALUE_PARAM)
 		throw exception("Symbol kind is neither REF_PARAM nor VALUE_PARAM.");
 	parameter->nestingLevel = nestingLevel;
-	int offset = 0;
 	if(parameterTop == NULL)
 	{
 		parameterTop = parameter;
-		parameter->offset = offset;
-		return;
+		parameter->offset = numOfParams++;
+		return true;
 	}
 	//Add the new paramter to the end of the list,
 	//so the sequence at which the paramter is added
 	//will be the same as the sequence at which
 	//the parameter appears in the function definition.
 	SymbolNode* end = parameterTop;
-	offset++;
+	if(end->lexeme == parameter->lexeme)
+		return false;
 	while(end->next != NULL)
 	{
 		end = end->next;
-		offset++;
+		if(end->lexeme == parameter->lexeme)
+			return false;
 	}
-	parameter->offset = offset;
+	parameter->offset = numOfParams++;
 	end->next = parameter;
+	return true;
 }
 SymbolNode::~SymbolNode()
 {
@@ -195,14 +197,14 @@ string tableClass::toString()
 	return s;
 }
 
-void tableClass::addFunctionParameter(SymbolNode* parameter)
+bool tableClass::addFunctionParameter(SymbolNode* parameter)
 {
 	if(top == NULL || top->next == NULL)
 		throw exception("Cannot add parameter because scope table is missing.");
 	TableLevel* lastLevel = top->next;
 	if(lastLevel->top == NULL)
 		throw exception("Cannot add parameter because function identifier is missing in the table.");
-	lastLevel->top->addParameter(parameter);
+	return lastLevel->top->addParameter(parameter);
 }
 
 tableClass::~tableClass()

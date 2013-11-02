@@ -1,22 +1,23 @@
 program demo;
 	int abc;
 	int cde;
-	
-	function fee;
-begin
-end;
 
-function foo (int &ppp, boolean qqq);
-int  abc;
-boolean  bb5;
-begin
-ppp = 6;
-qqq = true
-{$s+}
-end;
+	function foo (int &ppp, boolean qqq);
+		int  abc;
+		boolean  bb5;
+		begin
+			ppp = 6;
+			qqq = true
+		end;
 
-begin
-  abc = 7;
-  foo (abc, abc)  {note the type error will not be detected yet}
-  {$s+}
-end.
+	function fee(int a,int b);
+		begin
+			{$s+}
+		end;
+		
+	begin
+		abc = 7;
+		fee(cde,abc,abc);  {note the type error will not be detected yet}
+		cin>>abc
+		{$s+}
+	end.

@@ -23,9 +23,9 @@ private:
 	tokenClass t;
 	void parseStatement();
 	void parseExpr();//Parse expressions use shift and reduce algorithm. If the expression is invalid, program will be terminated.
-	void parseFollowID();
+	void parseFollowID(SymbolNode* id);
 	void parseFollowIf();
-	void parseFollowExpr();
+	int parseFollowExpr();
 	void parseFollowBegin();
 	void parseStatementTail();
 	void parseFollowCin();
@@ -57,7 +57,8 @@ private:
 	void printPrecedenceTable();
 	//Get the precedence of two tokens.
 	Precedence prec(tokenClass firstToken,tokenClass secondToken);
-	//Check whether the RHS is valid.
+	//Check whether the RHS is valid. 
+	//It also checks whether the identifiers in the RHS is declared.
 	bool isValidRHS(std::vector<tokenClass> tokens);
 	//Exit the program when read an unexpected token for recursive descent parser.
 	void recurDescentErrorAndExit(string found, vector<string> expected);
@@ -67,6 +68,10 @@ private:
 	void checkTokenAndGetNext(tokenClass token, tokenClass expected);
 	//Check whether a token is the end of an expression.
 	bool isEndOfExpression(tokenClass token);
+
+	//Check whether the identifier is already in the symbolTable.
+	//if not, exit the program, otherwise return the symbol found.
+	SymbolNode* checkId(string lexeme);
 };
 
 #endif

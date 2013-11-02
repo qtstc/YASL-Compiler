@@ -26,10 +26,10 @@ void parserClass::parseProgram()
 	/*int count = 0;
 	while(true)
 	{
-		parseStatement();
-		cout<<endl<<"PARSED "<<count<<endl<<endl;
-		checkTokenAndGetNext(t,tokenClass(SEMICOLON_T,NONE_ST,";"));
-		count++;
+	parseStatement();
+	cout<<endl<<"PARSED "<<count<<endl<<endl;
+	checkTokenAndGetNext(t,tokenClass(SEMICOLON_T,NONE_ST,";"));
+	count++;
 	}*/
 	cout<< "YASLC-TQ has just compiled "<<scanner.numLinesProcessed()<<" lines successfully."<<endl;
 	scanner.close();
@@ -66,7 +66,7 @@ void parserClass::parseIdentList(SymbolType type)
 	SymbolNode* symbol = new SymbolNode(t.lexeme,VAR_ID,type);
 	//Check duplicate and throw an error if duplicate is found.
 	if(!scanner.symbolTable.tableAddEntry(symbol))
-		errorAndExit("Duplicate identifier in the same scope.");
+		errorAndExit("Duplicate identifier ["+t.lexeme+"] in the same scope.");
 	checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
 	parseIdentTail(type);
 }
@@ -86,8 +86,9 @@ void parserClass::parseFuncDecs()
 		return;
 	t = scanner.getToken();
 	//First add the function to the table in cuurent scope
-	scanner.symbolTable.tableAddEntry(new SymbolNode(t.lexeme,FUNC_ID,FUNC_ID_TYPE));
-    //Then create a new level of table for the function
+	if(!scanner.symbolTable.tableAddEntry(new SymbolNode(t.lexeme,FUNC_ID,FUNC_ID_TYPE)))
+		errorAndExit("Duplicate identifier ["+t.lexeme+"] in the same scope.");
+	//Then create a new level of table for the function
 	scanner.symbolTable.tableAddLevel(t.lexeme);
 	checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
 	parseFuncDecTail();
@@ -126,8 +127,10 @@ void parserClass::parseTypeTail(SymbolType type)
 		t = scanner.getToken();
 		kind = REF_PARAM;
 	}
-	scanner.symbolTable.addFunctionParameter(new SymbolNode(t.lexeme,kind,type));
-	scanner.symbolTable.tableAddEntry(new SymbolNode(t.lexeme,kind,type));
+	if(!scanner.symbolTable.addFunctionParameter(new SymbolNode(t.lexeme,kind,type)))
+		errorAndExit("Duplicate identifier ["+t.lexeme+"] in the same scope.");
+	if(!scanner.symbolTable.tableAddEntry(new SymbolNode(t.lexeme,kind,type)))
+		errorAndExit("Duplicate identifier ["+t.lexeme+"] in the same scope.");
 	checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
 	parseFuncIdentTail();//NOTE:it's func ident tail here!
 }
@@ -157,35 +160,48 @@ void parserClass::parseStatement()
 	switch(t.type)
 	{
 	case WHILE_T:
-		t = scanner.getToken();
-		parseExpr();
-		checkTokenAndGetNext(t,tokenClass(DO_T,NONE_ST,"do"));
-		parseStatement();
+		{
+			t = scanner.getToken();
+			parseExpr();
+			checkTokenAndGetNext(t,tokenClass(DO_T,NONE_ST,"do"));
+			parseStatement();
+		}
 		break;
 	case IF_T:
-		t = scanner.getToken();
-		parseExpr();
-		checkTokenAndGetNext(t,tokenClass(THEN_T,NONE_ST,"then"));
-		parseStatement();
-		parseFollowIf();
+		{
+			t = scanner.getToken();
+			parseExpr();
+			checkTokenAndGetNext(t,tokenClass(THEN_T,NONE_ST,"then"));
+			parseStatement();
+			parseFollowIf();
+		}
 		break;
 	case IDENTIFIER_T:
-		t=scanner.getToken();
-		parseFollowID();
+		{
+			SymbolNode* id = checkId(t.lexeme);
+			t=scanner.getToken();
+			parseFollowID(id);
+		}
 		break;
 	case BEGIN_T:
-		t=scanner.getToken();
-		parseFollowBegin();
+		{
+			t=scanner.getToken();
+			parseFollowBegin();
+		}
 		break;
 	case CIN_T:
-		t= scanner.getToken();
-		parseFollowCin();
+		{
+			t= scanner.getToken();
+			parseFollowCin();
+		}
 		break;
 	case COUT_T:
-		t= scanner.getToken();
-		checkTokenAndGetNext(t,tokenClass(BITLEFT_T,NONE_ST,"<<"));
-		parseFollowCout();
-		parseCoutTail();
+		{
+			t= scanner.getToken();
+			checkTokenAndGetNext(t,tokenClass(BITLEFT_T,NONE_ST,"<<"));
+			parseFollowCout();
+			parseCoutTail();
+		}
 		break;
 	default:
 		vector<string> expected;
@@ -226,6 +242,7 @@ void parserClass::parseFollowCin()
 	if(t.type == BITRIGHT_T)
 	{
 		t = scanner.getToken();
+		checkId(t.lexeme);
 		checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
 		parseFollowCin();
 	}
@@ -254,35 +271,54 @@ void parserClass::parseFollowCout()
 		parseExpr();
 	}
 }
-void parserClass::parseFollowID()
+void parserClass::parseFollowID(SymbolNode* id)
 {
 	switch(t.type)
 	{
 	case ASSIGNMENT_T:
+		{
 		t = scanner.getToken();
 		parseExpr();
+		}
 		break;
 	case TILDE_T:
+		{
 		t = scanner.getToken();
+		checkId(t.lexeme);
 		checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
+		}
 		break;
 	case LEFTPAREN_T:
+		{
+		int expectedParamCount = id->numOfParams;
 		t = scanner.getToken();
 		parseExpr();
-		parseFollowExpr();
+		int foundParamCount = 1+parseFollowExpr();
+		if(expectedParamCount != foundParamCount)
+			errorAndExit("Incorrect number of parameters for function ["+id->lexeme+"]. Expecting "+to_string(expectedParamCount)+", found "+to_string(foundParamCount)
+			+".");
 		checkTokenAndGetNext(t,tokenClass(RIGHTPAREN_T,NONE_ST,")"));
+		}
 		break;
+	default:
+		//Checkk the case when id is a function but does not have any parameter
+		if(id->kind==FUNC_ID)
+		{
+			if(id->numOfParams != 0)
+				errorAndExit("Incorrect number of parameters for function ["+id->lexeme+"]. Expecting "+to_string(id->numOfParams)+", found none.");
+		}
 	}
 }
 
-void parserClass::parseFollowExpr()
+int parserClass::parseFollowExpr()
 {
 	if(t.type == COMMA_T)
 	{
 		t = scanner.getToken();
 		parseExpr();
-		parseFollowExpr();
+		return 1+parseFollowExpr();
 	}
+	return 0;
 	//Do nothing otherwise
 }
 void parserClass::parseFollowIf()
@@ -498,7 +534,13 @@ bool parserClass::isValidRHS(std::vector<tokenClass> tokens)
 			||token.type == TRUE_T
 			||token.type == FALSE_T
 			||token.type == E_T)
+		{
+			//Here we also checks whether the identifier is declared,
+			//if the token is an indentifier.
+			if(token.type == IDENTIFIER_T)
+				checkId(token.lexeme);
 			return true;
+		}
 		return false;
 	}
 	//All the other cases have three tokens
@@ -605,4 +647,12 @@ void parserClass::checkTokenAndGetNext(tokenClass token, tokenClass expected)
 	if(token.type != expected.type)
 		recurDescentErrorAndExit(token.lexeme,vector<string>(1,expected.lexeme));
 	t = scanner.getToken();
+}
+
+SymbolNode* parserClass::checkId(string lexeme)
+{
+	SymbolNode* result = scanner.symbolTable.tableLookup(lexeme);
+	if(result == NULL)
+		errorAndExit("Identifier ["+lexeme+"] is undeclared.");
+	return result;
 }
