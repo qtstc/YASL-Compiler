@@ -8,7 +8,6 @@
 
 const int MAXCELLSPERSTRING = 82;  //80 characters as well as \n plus \0.
 
-
 //Definition used in scanner.cpp
 
 //Below are constant used to represent token type/subtypes.
@@ -106,6 +105,19 @@ enum Precedence {GREATER_PRECEDENCE,LESS_PRECEDENCE,EQUAL_PRECEDENCE,ERROR_PRECE
 
 //definition used in table.cpp
 enum SymbolKind{FUNC_ID,VAR_ID,REF_PARAM,VALUE_PARAM,INVALID_KIND};
+const char* const symbolKindStrings[] = {
+  "func-id", 
+  "var-id",
+  "ref-param",
+  "value-param",
+  "invalid-kind"
+};
 enum SymbolType{FUNC_ID_TYPE,INT_TYPE,BOOLEAN_TYPE,INVALID_TYPE};
+const char*  const symbolTypeStrings[] = {
+	"func-id-type",
+	"int-type",
+	"boolean-type",
+	"invalid-type"
+};
 
 #endif

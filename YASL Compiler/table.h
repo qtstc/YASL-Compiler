@@ -27,6 +27,7 @@ public:
 	//If (kind == FUNC_ID) then store a pointer to 
 	//a linked list of the formal parameters for the function.
 	SymbolNode *parameterTop;
+	string toString();
 };
 
 class TableLevel
@@ -57,6 +58,7 @@ public:
 	TableLevel *next;
 	bool addSymbol(SymbolNode* node);
 	SymbolNode* lookup(string lexeme);
+	string toString();
 };
 
 class tableClass
@@ -89,6 +91,8 @@ public:
 	(searching multiple levels may be performed.) 
 	*/
 	SymbolNode* tableLookup(string lexeme);
+	string toString();
+	friend ostream& operator<<(std::ostream &strm, const tableClass &tb);
 private:
 	TableLevel *top;
 	int nextNestingLevel;

@@ -41,6 +41,28 @@ SymbolNode::~SymbolNode()
 	}
 }
 
+string SymbolNode::toString()
+{
+	string s = "lexeme=";
+	s += lexeme;
+	s += ", kind=";
+	s += symbolKindStrings[kind];
+	s += ", type=";
+	s += symbolTypeStrings[type];
+	s += ", offset=";
+	s += offset;
+	s += ", nesting level=";
+	s += nestingLevel;
+	if(parameterTop != NULL)
+	{
+		s+="\n\tparameters:";
+		SymbolNode *p = parameterTop;
+		while(p != NULL)
+			s += "\n\t"+p->toString();
+	}
+	return s;
+}
+
 TableLevel::TableLevel(string name, int nestingLevel):name(name),nestingLevel(nestingLevel),nextOffset(0),top(NULL),next(NULL)
 {}
 
@@ -77,6 +99,24 @@ TableLevel::~TableLevel()
 		p = p->next;
 		delete temp;
 	}
+}
+
+string TableLevel::toString()
+{
+	string s = "name=";
+	s += name;
+	s += ", nesting level=";
+	s += nestingLevel;
+	if(top != NULL)
+	{
+		SymbolNode *p = top;
+		while(p != NULL)
+		{
+			s += "\n"+p->toString();
+			p = p->next;
+		}
+	}
+	return s;
 }
 
 tableClass::tableClass():top(NULL),nextNestingLevel(0)
@@ -120,6 +160,17 @@ SymbolNode* tableClass::tableLookup(string lexeme)
 		p = p->next;
 	}
 	return NULL;
+}
+
+string tableClass::toString()
+{
+	string s = "*******************************************";
+	TableLevel *p = top;
+	while(p != NULL)
+	{
+		s += "\n" + p->toString();
+	}
+	return s;
 }
 
 tableClass::~tableClass()
