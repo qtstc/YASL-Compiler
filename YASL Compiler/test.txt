@@ -1,23 +1,28 @@
-program demo;
-	int abc;
-	int cde;
-
-	function foo (int &ppp, boolean qqq);
-		int  abc;
-		boolean  bb5;
-		begin
-			ppp = 6;
-			qqq = true
-		end;
-
-	function fee(int a,int b);
-		begin
-			{$s+}
-		end;
-		
+program test;
+int notFunc;
+boolean notFunc2;
+function a;
+begin
+end;
+function b(int x, boolean& y);
+	function c(int x, boolean& y, int &z);
 	begin
-		abc = 7;
-		fee(cde,abc,abc);  {note the type error will not be detected yet}
-		cin>>abc
-		{$s+}
-	end.
+	{$s+}
+	{
+		//Fail cases
+		notFunc(a);
+		b;
+		c;
+		a(1,2);
+		a(true);
+		b(1);
+	}
+	a;
+	c(1,2,3);
+	b(1,2);
+	notFunc//not checking type. 
+	end;
+begin
+end;
+begin
+end.

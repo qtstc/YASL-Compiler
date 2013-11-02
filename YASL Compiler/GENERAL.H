@@ -108,15 +108,15 @@ enum Precedence {GREATER_PRECEDENCE,LESS_PRECEDENCE,EQUAL_PRECEDENCE,ERROR_PRECE
 //definition used in table.cpp
 enum SymbolKind{INVALID_KIND,FUNC_ID,VAR_ID,REF_PARAM,VALUE_PARAM};
 const char* const symbolKindStrings[] = {
-    "invalid-kind",
+	"invalid-kind",
 	"func-id", 
-  "var-id",
-  "ref-param",
-  "value-param"
+	"var-id",
+	"ref-param",
+	"val-param"
 };
 enum SymbolType{INVALID_TYPE,FUNC_ID_TYPE,INT_TYPE,BOOLEAN_TYPE};
 const char*  const symbolTypeStrings[] = {
-		"invalid-type",
+	"invalid-type",
 	"func-id-type",
 	"int-type",
 	"boolean-type"

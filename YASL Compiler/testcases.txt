@@ -1,0 +1,307 @@
+//Copy each case from this file to a seperate file for testing.
+//Dave's test case
+program demo;
+	int abc;
+	int cde;
+	
+	function fee;
+begin
+end;
+
+function foo (int &ppp, boolean qqq);
+int  abc;
+boolean  bb5;
+begin
+ppp = 6;
+qqq = true
+{$s+}
+end;
+
+begin
+  abc = 7;
+  foo (abc, abc)  {note the type error will not be detected yet}
+  {$s+}
+end.
+------------------------------------------------------------------
+//Simple case
+program test;
+{$s+}
+int a;
+int b;
+{$s+}
+begin
+end.
+------------------------------------------------------------------
+//Fail because of dupliate id
+program test;
+int a;
+int a;
+begin
+end.
+------------------------------------------------------------------
+//Stil fail
+program test;
+int a;
+boolean a;
+begin
+end.
+------------------------------------------------------------------
+//Stil fail
+program test;
+int a;
+function a;
+begin
+end.
+------------------------------------------------------------------
+//Definition separated by ,
+program test;
+int a,b;
+boolean c,d;
+{$s+}
+begin
+end.
+------------------------------------------------------------------
+program test;
+int a,b;
+boolean c,d;
+function f1;//No param
+begin
+end;
+function f2(int p1);
+begin
+end;
+function f3(boolean p1, boolean& p2,int p3);
+begin
+end;
+{$s+}
+begin
+end.
+------------------------------------------------------------------
+//duplicate in different scope
+program test;
+int a,b;
+boolean c,d;
+function f1;//No param
+int a;
+begin
+{$s+}
+end;
+{$s+}
+begin
+end.
+------------------------------------------------------------------
+//Correct
+program test;
+int a,b;
+boolean c,d;
+function f1;//No param
+	int a;
+	function f1(int a);
+	begin
+	{$s+}
+	end;
+{$s+}
+begin
+end;
+begin
+end.
+------------------------------------------------------------------
+//Fail because of duplicate id
+program test;
+int a,b;
+boolean c,d;
+function f1(boolean& a);
+	int a;
+	begin
+	end;
+begin
+end.
+------------------------------------------------------------------
+//Still fail
+program test;
+int a,b;
+boolean c,d;
+function f1(boolean& a,int a);
+	begin
+	end;
+begin
+end.
+------------------------------------------------------------------
+//Correct
+program test;
+int a,b;
+boolean c,d;
+function f1(boolean& aa,int bb);
+	begin
+	cin>>d
+	end;
+begin
+end.
+------------------------------------------------------------------
+//Undeclared id, follow cin.
+program test;
+int a,b;
+boolean c,d;
+function f1(boolean& aa,int bb);
+	begin
+	cin>>gg
+	end;
+begin
+end.
+------------------------------------------------------------------
+//Undeclared id, id assignment
+program test;
+int a,b;
+boolean c,d;
+function f1(boolean& aa,int bb);
+	begin
+	a = 1+1;
+	aa = true and false;
+	gg = (false)
+	end;
+begin
+end.
+------------------------------------------------------------------
+//Undeclared id, id swap
+program test;
+int a,b;
+boolean c,d;
+function f2(int g);
+	begin
+		a ~ g
+	end;
+function f1(boolean& aa,int bb);
+	int aaa;
+	begin
+		aaa ~ a;
+		aa ~ a;
+		bb ~ c;
+		aa ~ g
+	end;
+begin
+end.
+------------------------------------------------------------------
+//Undeclared id, undeclared func
+program test;
+int a,b;
+boolean c,d;
+function f2(int g);
+	begin
+	end;
+function f1(boolean& aa,int bb);
+	int aaa;
+	function f3;
+	begin
+	end;
+	begin
+		aaa;//Call identifer(type not checked)
+		f2(aaa);//Call function from scope above
+		f1(a,bb);//Call function from scope above
+		f3;//Call function from current scope
+		f4//error
+	end;
+begin
+end.
+------------------------------------------------------------------
+//Undeclared id, cin
+program test;
+int a,b;
+boolean c,d;
+function f2(int g);
+	begin
+	end;
+function f1(boolean& aa,int bb);
+	int aaa;
+	function f3;
+	begin
+	end;
+	begin
+		cin>>aa;
+		cin>>aaa;
+		cin>>f3;//Type not checked
+		cin>>f1;//Type not checked
+		cin>>f2;//Type not checked
+		cin>>gg//error
+	end;
+begin
+end.
+------------------------------------------------------------------
+//Undeclared id, in expression
+program test;
+int x;
+function f1(boolean& z);
+	int yy;
+	boolean domore;
+	function y(int z);
+		begin
+		end;
+	begin
+	//Delete the declaretion of any variable in the while loop to get error.
+	while ((x+2) <> (y+6)) do
+		while ((z>6) and (domore)) do
+						while ((z>6) and (domore)) do
+							x= (yy+z div 2)
+	end;
+begin
+end.
+------------------------------------------------------------------
+//More id in expression
+program test;
+int x;
+int y;
+boolean z,c;
+function a;
+begin
+end;
+function b(int x, boolean& y);
+begin
+end;
+begin
+//expression Contains no id.
+x = 1 == 2 >= 3 or 4 and 5;
+y = ((((1 <> 2) < 3) - 4) mod 5);
+z = 1<>2>3<4==5<=6>=7;
+a = 1<>2>3<(4==5)<=6>=7;
+b = 1<>2>3<(4==5) div 6>=7;
+c = 1<>2>3< 4==5 div 6>=7;
+x = true and false or true and true >= false and true + 1;
+//Contains id, change id to undeclared ones
+x = x == y >= z or 4 and 5;
+y = ((((z <> 2) < a) - c) mod 5);
+z = a<>2>3<4==5<=c>=b;
+a = a<>2>3<(4==y)<=6>=x;
+b = a<>a>b<(4==5) div 6>=7;
+c = a<>a>3< 4==5 div c>=7;
+x = true and false or true and true >= false and true + 1
+end.
+------------------------------------------------------------------
+//Check function parameter number.
+program test;
+int notFunc;
+boolean notFunc2;
+function a;
+begin
+end;
+function b(int x, boolean& y);
+	function c(int x, boolean& y, int &z);
+	begin
+	{$s+}
+	{
+		//Fail cases
+		notFunc(a);
+		b;
+		c;
+		a(1,2);
+		a(true);
+		b(1);
+	}
+	a;
+	c(1,2,3);
+	b(1,2);
+	notFunc//not checking type. 
+	end;
+begin
+end;
+begin
+end.
+------------------------------------------------------------------

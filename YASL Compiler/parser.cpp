@@ -273,31 +273,32 @@ void parserClass::parseFollowCout()
 }
 void parserClass::parseFollowID(SymbolNode* id)
 {
+	//TODO(in later project), check the type of id.
 	switch(t.type)
 	{
 	case ASSIGNMENT_T:
 		{
-		t = scanner.getToken();
-		parseExpr();
+			t = scanner.getToken();
+			parseExpr();
 		}
 		break;
 	case TILDE_T:
 		{
-		t = scanner.getToken();
-		checkId(t.lexeme);
-		checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
+			t = scanner.getToken();
+			checkId(t.lexeme);
+			checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
 		}
 		break;
 	case LEFTPAREN_T:
 		{
-		int expectedParamCount = id->numOfParams;
-		t = scanner.getToken();
-		parseExpr();
-		int foundParamCount = 1+parseFollowExpr();
-		if(expectedParamCount != foundParamCount)
-			errorAndExit("Incorrect number of parameters for function ["+id->lexeme+"]. Expecting "+to_string(expectedParamCount)+", found "+to_string(foundParamCount)
-			+".");
-		checkTokenAndGetNext(t,tokenClass(RIGHTPAREN_T,NONE_ST,")"));
+			int expectedParamCount = id->numOfParams;
+			t = scanner.getToken();
+			parseExpr();
+			int foundParamCount = 1+parseFollowExpr();
+			if(expectedParamCount != foundParamCount)
+				errorAndExit("Incorrect number of parameters for function ["+id->lexeme+"]. Expecting "+to_string(expectedParamCount)+", found "+to_string(foundParamCount)
+				+".");
+			checkTokenAndGetNext(t,tokenClass(RIGHTPAREN_T,NONE_ST,")"));
 		}
 		break;
 	default:

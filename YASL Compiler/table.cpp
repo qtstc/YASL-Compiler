@@ -187,11 +187,11 @@ SymbolNode* tableClass::tableLookup(string lexeme)
 
 string tableClass::toString()
 {
-	string s = "*******************************************";
+	string s = "*************************************************";
 	TableLevel *p = top;
 	while(p != NULL)
 	{
-		s += "\n" + p->toString();
+		s += "\n" + p->toString()+"\n";
 		p= p->next;
 	}
 	return s;
