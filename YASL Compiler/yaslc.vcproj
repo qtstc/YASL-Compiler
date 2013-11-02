@@ -260,6 +260,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\table.cpp"
+				>
+			</File>
+			<File
 				RelativePath="yaslc.cpp"
 				>
 				<FileConfiguration
@@ -309,6 +313,10 @@
 			</File>
 			<File
 				RelativePath="StdAfx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\table.h"
 				>
 			</File>
 		</Filter>
