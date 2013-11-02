@@ -12,6 +12,8 @@
 class SymbolNode
 {
 public:
+	SymbolNode(string lexeme,SymbolKind kind, SymbolType type);
+	~SymbolNode();
 	string lexeme;
 	SymbolKind kind;
 	SymbolType type;
@@ -19,6 +21,9 @@ public:
 	int offset;
 	//The nesting level of the table that this entry is contained in.
 	int nestingLevel;
+	void addParameter(SymbolNode* parameter);
+	//Points to next symbol in the list.
+	SymbolNode *next;
 	//If (kind == FUNC_ID) then store a pointer to 
 	//a linked list of the formal parameters for the function.
 	SymbolNode *parameterTop;
@@ -27,6 +32,8 @@ public:
 class TableLevel
 {
 public:
+	TableLevel(string name, int nestingLevel);
+	~TableLevel();
 	//The name of the scoping level (for example, main.foo.fee).
 	string name;
 	/*
@@ -47,6 +54,9 @@ public:
 	Each node contains information about a symbol.  
 	*/
 	SymbolNode *top;
+	TableLevel *next;
+	bool addSymbol(SymbolNode* node);
+	SymbolNode* lookup(string lexeme);
 };
 
 class tableClass
@@ -59,7 +69,7 @@ public:
 	The new level will contain an empty (self-organizing) list.  
 	This routine is used when you enter the scope of a new function.
 	*/
-	void tableAddLevel();
+	void tableAddLevel(string scope);
 	/*
 	Delete the top-most level of the table. 
 	Free all memory.  
@@ -70,8 +80,9 @@ public:
 	Add an entry to the table 
 	(the entry is added to the front of the self-organizing list 
 	which is the top-most table on the stack of tables.)  
+	Return false if a symbol with the same name already exist in the table.
 	*/
-	void tableAddEntry(SymbolNode* Node);
+	bool tableAddEntry(SymbolNode* node);
 	/*
 	Given a lexeme as a parameter, 
 	determine if it appears in the table 
@@ -80,7 +91,7 @@ public:
 	SymbolNode* tableLookup(string lexeme);
 private:
 	TableLevel *top;
-
+	int nextNestingLevel;
 };
 
 #endif
