@@ -1,28 +1,10 @@
 program test;
-int notFunc;
-boolean notFunc2;
+int d;
 function a;
 begin
 end;
-function b(int x, boolean& y);
-	function c(int x, boolean& y, int &z);
-	begin
-	{$s+}
-	{
-		//Fail cases
-		notFunc(a);
-		b;
-		c;
-		a(1,2);
-		a(true);
-		b(1);
-	}
-	a;
-	c(1,2,3);
-	b(1,2);
-	notFunc//not checking type. 
-	end;
 begin
-end;
-begin
+d = 13;
+a
+{$s+}
 end.

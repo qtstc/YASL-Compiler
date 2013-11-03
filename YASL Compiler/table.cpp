@@ -104,10 +104,20 @@ bool TableLevel::addSymbol(SymbolNode* node)
 SymbolNode* TableLevel::lookup(string lexeme)
 {
 	SymbolNode *p = top;
-	while(p!=NULL)
+	if(p == NULL)
+		return NULL;
+	if(p->lexeme == lexeme)
+		return p;
+	while(p->next != NULL)
 	{
-		if(p->lexeme == lexeme)
-			return p;
+		if(p->next->lexeme == lexeme)
+		{
+			SymbolNode* found = p->next;
+			p->next = found->next;
+			found->next = top;
+			top = found;
+			return found;
+		}
 		p = p->next;
 	}
 	return NULL;

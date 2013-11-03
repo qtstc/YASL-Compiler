@@ -305,3 +305,32 @@ end;
 begin
 end.
 ------------------------------------------------------------------
+//Self organizing-list
+program test;
+int c;
+int d;
+int a;
+int e;
+int f;
+int b;
+begin
+f = 15;
+e = 14;
+d = 13;
+c = 12;
+b = 11;
+a = 10
+{$s+}
+end.
+------------------------------------------------------------------
+//Self organizing-list edge case
+program test;
+int d;
+function a;
+begin
+end;
+begin
+d = 13;
+a
+{$s+}
+end.
