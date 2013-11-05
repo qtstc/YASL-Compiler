@@ -1,10 +1,17 @@
+//Self organizing-list
 program test;
+int c;
 int d;
-function a;
+int a;
+int e;
+int f;
+int b;
 begin
-end;
-begin
+f = 15;
+e = 14;
 d = 13;
-a
+c = 12;
+b = 11;
+a = 10
 {$s+}
 end.

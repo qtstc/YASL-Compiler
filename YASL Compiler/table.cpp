@@ -18,7 +18,7 @@ bool SymbolNode::addParameter(SymbolNode* parameter)
 		throw exception("Adding parameter to a non-function symbol.");
 	if(parameter->kind != REF_PARAM && parameter-> kind!= VALUE_PARAM)
 		throw exception("Symbol kind is neither REF_PARAM nor VALUE_PARAM.");
-	parameter->nestingLevel = nestingLevel;
+	parameter->nestingLevel = nestingLevel+1;//The nesting level of parameter should be one level deeper than the function.
 	if(parameterTop == NULL)
 	{
 		parameterTop = parameter;
