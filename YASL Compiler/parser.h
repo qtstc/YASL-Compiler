@@ -21,6 +21,7 @@ public:
 	void parseProgram();
 private:
 	tokenClass t;
+	fstream outfile;
 	void parseStatement();
 	void parseExpr();//Parse expressions use shift and reduce algorithm. If the expression is invalid, program will be terminated.
 	void parseFollowID(SymbolNode* id);
@@ -72,6 +73,8 @@ private:
 	//Check whether the identifier is already in the symbolTable.
 	//if not, exit the program, otherwise return the symbol found.
 	SymbolNode* checkId(string lexeme);
+
+	string toAssemlyChar(char c);
 };
 
 #endif

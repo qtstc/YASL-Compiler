@@ -1,17 +1,7 @@
-//Self organizing-list
-program test;
-int c;
-int d;
-int a;
-int e;
-int f;
-int b;
+program bee;
+
 begin
-f = 15;
-e = 14;
-d = 13;
-c = 12;
-b = 11;
-a = 10
-{$s+}
+	cout<<'When bee in hand what in eye?';
+	cin;
+	cout<<'beauty'
 end.

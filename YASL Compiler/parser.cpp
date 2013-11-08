@@ -15,13 +15,21 @@ parserClass::parserClass()
 
 void parserClass::parseProgram()
 {
+	//Open a new file for writing the generated code.
+	outfile.open("out.pal",ios::out);
+
 	t = scanner.getToken();
 	checkTokenAndGetNext(t,tokenClass(PROGRAM_T,NONE_ST,"program"));
+
+	outfile<<"$main movw sp R0"<<endl;
+
 	scanner.symbolTable.tableAddLevel(t.lexeme);
 	checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
 	checkTokenAndGetNext(t,SEMICOLON_TOKEN);
 	parseBlock();
 	scanner.symbolTable.tableDelLevel();
+	outfile<<"inb @sp"<<endl;
+	outfile<<"end";
 	checkTokenAndGetNext(t,tokenClass(DOT_T,NONE_ST,"."));
 	/*int count = 0;
 	while(true)
@@ -33,6 +41,7 @@ void parserClass::parseProgram()
 	}*/
 	cout<< "YASLC-TQ has just compiled "<<scanner.numLinesProcessed()<<" lines successfully."<<endl;
 	scanner.close();
+	outfile.close();
 }
 
 
@@ -246,6 +255,10 @@ void parserClass::parseFollowCin()
 		checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
 		parseFollowCin();
 	}
+	else
+	{
+		outfile<<"inb @sp"<<endl;
+	}
 }
 
 void parserClass::parseCoutTail()
@@ -262,10 +275,21 @@ void parserClass::parseFollowCout()
 	switch(t.type)
 	{
 	case STRING_T:
-		t = scanner.getToken();
+		{
+			string s = t.lexeme;
+			for(int i = 1;i<s.length()-1;++i)
+			{
+				outfile<<"outb "<<toAssemlyChar(s[i])<<endl;
+			}
+
+			t = scanner.getToken();
+		}
 		break;
 	case ENDL_T:
+		{
+			outfile<<"outb #10";
 		t = scanner.getToken();
+		}
 		break;
 	default:
 		parseExpr();
@@ -603,6 +627,34 @@ bool parserClass::isValidRHS(std::vector<tokenClass> tokens)
 	return false;
 }
 
+
+bool parserClass::isEndOfExpression(tokenClass token)
+{
+	if(token.subtype == NONE_ST)
+	{
+		if(token.type == DO_T || 
+			token.type == SEMICOLON_T||
+			token.type == THEN_T ||
+			token.type == BITLEFT_T ||
+			token.type == END_T ||
+			token.type == ELSE_T ||
+			token.type == COMMA_T ||
+			token.type == RIGHTPAREN_T)//Note: checking right paren here.
+			return true;
+	}
+	return false;
+}
+
+string parserClass::toAssemlyChar(char c)
+{
+	if(c == ' ')
+		return "#32";
+	//if(c>='A' && c <= 'Z' || c >='a' && c<= 'z')
+	string result = "^";
+	result += c;
+	return result;
+}
+
 void parserClass::recurDescentErrorAndExit(string found, vector<string> expected)
 {
 	string s = "Found ["+found+"] when expecting ";
@@ -623,26 +675,11 @@ void parserClass::errorAndExit(string message)
 	scanner.printCurrentLine();
 	cout<<message<<endl;
 	scanner.close();
+	outfile.close();
 	cin.get();
 	exit(0);
 }
 
-bool parserClass::isEndOfExpression(tokenClass token)
-{
-	if(token.subtype == NONE_ST)
-	{
-		if(token.type == DO_T || 
-			token.type == SEMICOLON_T||
-			token.type == THEN_T ||
-			token.type == BITLEFT_T ||
-			token.type == END_T ||
-			token.type == ELSE_T ||
-			token.type == COMMA_T ||
-			token.type == RIGHTPAREN_T)//Note: checking right paren here.
-			return true;
-	}
-	return false;
-}
 void parserClass::checkTokenAndGetNext(tokenClass token, tokenClass expected)
 {
 	if(token.type != expected.type)
