@@ -39,14 +39,14 @@ int a;
 begin
 end.
 ------------------------------------------------------------------
-//Stil fail
+//Still fail
 program test;
 int a;
 boolean a;
 begin
 end.
 ------------------------------------------------------------------
-//Stil fail
+//Still fail
 program test;
 int a;
 function a;
@@ -61,6 +61,7 @@ boolean c,d;
 begin
 end.
 ------------------------------------------------------------------
+//Correct
 program test;
 int a,b;
 boolean c,d;
@@ -77,7 +78,7 @@ end;
 begin
 end.
 ------------------------------------------------------------------
-//duplicate in different scope
+//Correct duplicate in different scope
 program test;
 int a,b;
 boolean c,d;

@@ -106,11 +106,11 @@ SymbolNode* TableLevel::lookup(string lexeme)
 	SymbolNode *p = top;
 	if(p == NULL)
 		return NULL;
-	if(p->lexeme == lexeme)
+	if(_strcmpi(p->lexeme.c_str(),lexeme.c_str())==0)
 		return p;
 	while(p->next != NULL)
 	{
-		if(p->next->lexeme == lexeme)
+		if(_strcmpi(p->next->lexeme.c_str(),lexeme.c_str())==0)
 		{
 			SymbolNode* found = p->next;
 			p->next = found->next;
