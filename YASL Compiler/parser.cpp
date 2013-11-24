@@ -16,7 +16,7 @@ parserClass::parserClass()
 void parserClass::parseProgram()
 {
 	//Open a new file for writing the generated code.
-	outfile.open("out.pal",ios::out);
+	outfile.open("..\\Pali\\out.pal",ios::out);
 
 	t = scanner.getToken();
 	checkTokenAndGetNext(t,tokenClass(PROGRAM_T,NONE_ST,"program"));
@@ -287,7 +287,7 @@ void parserClass::parseFollowCout()
 		break;
 	case ENDL_T:
 		{
-			outfile<<"outb #10";
+			outfile<<"outb #10"<<endl;
 		t = scanner.getToken();
 		}
 		break;

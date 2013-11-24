@@ -1,24 +1,9 @@
-program demo;
-	int abc;
-	int cde;
-	int FOO; //YASL is case-insensitive. This is the same as foo.
-	
-	function fee;
-	begin
-	end;
-
-	function foo(int &ppp,boolean qqq); //duplicate identifier
-		int abc;
-		boolean bb5;
-	begin
-		abc = 6;
-		qqq = true;
-		ppp ~ qqq
-		{$s+}
-	end;
+program novars;
 
 begin
-	abc = 7;
-	foo(abc,ppp)
-	{$s+}
+	cout<<'If I have a bee in my hand';
+	cout<<'what is in my eye?'<<endl;
+	cout<<'Press CR for answer.'<<endl;
+	cin; //Like cin.get() in C++
+	cout<<'Beauty'
 end.

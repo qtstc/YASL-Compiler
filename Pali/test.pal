@@ -1,0 +1,14 @@
+:test.pal
+:This program takes a number n and outputs
+:n, n-1, ... 1. One number on each line.
+
+$num  #4
+$main  inw   $num
+	$top	cmpw $num #0
+			bleq $done
+			outw $num
+			outb #10
+			subw #1 $num
+			jmp $top
+	$done inb @sp
+	end
