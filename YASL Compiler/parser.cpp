@@ -154,6 +154,8 @@ void parserClass::parseFuncIdentTail()
 void parserClass::parseBlock()
 {
 	parseVarDecs();
+	int stackDiff = PAL_WORD_SIZE*scanner.symbolTable.top->nextOffset;
+	printInstruction(PAL_ADDW,NULL,toPALLiteral(stackDiff),NULL,PAL_SP);
 	parseFuncDecs();
 	parseProgBody();
 }
@@ -251,7 +253,10 @@ void parserClass::parseFollowCin()
 	if(t.type == BITRIGHT_T)
 	{
 		t = scanner.getToken();
-		checkId(t.lexeme);
+		SymbolNode* id = checkId(t.lexeme);
+		//TODO: type check for cin.
+		string firstParam = "+"+to_string((id->offset)*PAL_WORD_SIZE)+"@R0";
+		printInstruction(PAL_INW,NULL,firstParam);
 		checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
 		parseFollowCin();
 	}
@@ -279,7 +284,7 @@ void parserClass::parseFollowCout()
 			string s = t.lexeme;
 			for(int i = 1;i<s.length()-1;++i)
 			{
-				outfile<<"outb "<<toAssemlyChar(s[i])<<endl;
+				outfile<<"outb "<<toPALChar(s[i])<<endl;
 			}
 
 			t = scanner.getToken();
@@ -645,7 +650,12 @@ bool parserClass::isEndOfExpression(tokenClass token)
 	return false;
 }
 
-string parserClass::toAssemlyChar(char c)
+string parserClass::toPALLiteral(int n)
+{
+	return "#"+to_string(n);
+}
+
+string parserClass::toPALChar(char c)
 {
 	if(c == ' ')
 		return "#32";
@@ -693,4 +703,23 @@ SymbolNode* parserClass::checkId(string lexeme)
 	if(result == NULL)
 		errorAndExit("Identifier ["+lexeme+"] is undeclared.");
 	return result;
+}
+
+void parserClass::printInstruction(string instruction, SymbolNode* firstParamPtr, string firstParam, SymbolNode* secondParamPtr, string secondParam)
+{
+	//TODO: complete the pointer part.
+	outfile<<instruction<<" "<<firstParam<<" "<<secondParam<<endl;
+}
+
+void parserClass::printInstruction(string instruction, SymbolNode* firstParamPtr, string firstParam)
+{
+	outfile<<instruction<<" "<<firstParam<<endl;
+}
+
+string parserClass::getNextTempName()
+{
+	static int nextCt = 0;
+	char tempName[10];
+	sprintf(tempName,"$%d",nextCt++);
+	return tempName;
 }

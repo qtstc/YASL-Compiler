@@ -130,4 +130,14 @@ std::string to_string(T value)
 	return os.str() ;
 }
 
+#define IDENTIFIER_TOKEN tokenClass(IDENTIFIER_T,NONE_ST,"identifier")
+#define SEMICOLON_TOKEN tokenClass(SEMICOLON_T,NONE_ST,";")
+
+//Constants for PAL
+#define PAL_WORD_SIZE 4
+#define PAL_ADDW "addw"
+#define PAL_MOVW "movw"
+#define PAL_SP "SP"
+#define PAL_INW "inw"
+
 #endif

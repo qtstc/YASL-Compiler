@@ -99,8 +99,8 @@ public:
 	SymbolNode* tableLookup(string lexeme);
 	string toString();
 	bool addFunctionParameter(SymbolNode* parameter);
-private:
 	TableLevel *top;
+private:
 	int nextNestingLevel;
 };
 

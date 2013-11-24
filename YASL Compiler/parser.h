@@ -11,8 +11,6 @@
 #include "pstack.h"
 #include <vector>
 
-#define IDENTIFIER_TOKEN tokenClass(IDENTIFIER_T,NONE_ST,"identifier")
-#define SEMICOLON_TOKEN tokenClass(SEMICOLON_T,NONE_ST,";")
 
 class parserClass
 {
@@ -74,7 +72,13 @@ private:
 	//if not, exit the program, otherwise return the symbol found.
 	SymbolNode* checkId(string lexeme);
 
-	string toAssemlyChar(char c);
+	//Method used for generating PAL code.
+	//Convert ASCII char to the ones used in PAL
+	string toPALChar(char c);
+	void printInstruction(string instruction, SymbolNode* firstParamPtr, string firstParam, SymbolNode* secondParamPtr, string secondParam);
+	void printInstruction(string instruction, SymbolNode* firstParamPtr, string firstParam);
+	string toPALLiteral(int n);
+	string getNextTempName();
 };
 
 #endif
