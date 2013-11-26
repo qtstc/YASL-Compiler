@@ -255,8 +255,7 @@ void parserClass::parseFollowCin()
 		t = scanner.getToken();
 		SymbolNode* id = checkId(t.lexeme);
 		//TODO: type check for cin.
-		string firstParam = "+"+to_string((id->offset)*PAL_WORD_SIZE)+"@R0";
-		printInstruction(PAL_INW,NULL,firstParam);
+		printInstruction(PAL_INW,id,"");
 		checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
 		parseFollowCin();
 	}
@@ -366,6 +365,8 @@ void parserClass::parseExpr()
 	stack.push(SEMICOLON_TOKEN);//First push a semicolon onto the stack.
 	if(isEndOfExpression(t))
 		errorAndExit("Empty expression");
+	//mark the current top of the stack with R1
+	printInstruction(PAL_MOVW,NULL,PAL_SP,NULL,PAL_R1);
 	while(true)
 	{
 		tokenClass topTerm = stack.getTopMostTerminal();
@@ -393,7 +394,9 @@ void parserClass::parseExpr()
 			while(stack.lastTerminalPopped.type == EMPTY_T
 				||(!stack.terminalOnTop())
 				||prec(stack.getTopMostTerminal(),stack.lastTerminalPopped) != LESS_PRECEDENCE);
-			if(isValidRHS(tokens))
+
+			SymbolNode* symbol = isValidRHS(tokens);
+			if(symbol != NULL)
 			{
 				if(scanner.expressionDebugging)//Print debug message if expression debugging is turned on.
 				{
@@ -403,7 +406,7 @@ void parserClass::parseExpr()
 					cout<<endl;
 				}
 				//Replace the expression in the array with a E if the expression is valid.
-				stack.push(tokenClass(E_T,NONE_ST,"E"));
+				stack.pushE(symbol);
 			}
 			else//If expression is invalid, throw error.
 				errorAndExit("Invalid right hand side.");
@@ -553,29 +556,48 @@ Precedence parserClass::prec(tokenClass firstToken,tokenClass secondToken)
 {
 	return precedenceTable[tokenToTableIndex(firstToken)][tokenToTableIndex(secondToken)];
 }
-bool parserClass::isValidRHS(std::vector<tokenClass> tokens)
+SymbolNode* parserClass::addTempVariable(tokenClass token)
+{
+	SymbolType type = INT_TYPE;
+	if(token.type == TRUE_T || token.type == FALSE_T)
+		type = BOOLEAN_TYPE;
+	else if(token.type != INTEGER_T)
+		return false;
+
+	SymbolNode* node = new SymbolNode(getNextTempName(),VAR_ID,BOOLEAN_TYPE);
+	node->token = new tokenClass(token.type,token.subtype,token.lexeme);
+	if(scanner.symbolTable.tableAddEntry(node))
+		return node;
+	return NULL;
+}
+
+SymbolNode* parserClass::isValidRHS(std::vector<tokenClass> tokens)
 {
 	//Base case of a single terminal
 	if(tokens.size() == 1)
 	{
 		tokenClass token = tokens.back();
 		if(token.type == INTEGER_T
-			||token.type == IDENTIFIER_T
 			||token.type == TRUE_T
 			||token.type == FALSE_T
 			||token.type == E_T)
 		{
-			//Here we also checks whether the identifier is declared,
-			//if the token is an indentifier.
-			if(token.type == IDENTIFIER_T)
-				checkId(token.lexeme);
-			return true;
+			SymbolNode* temp = addTempVariable(token);
+			return temp;
 		}
-		return false;
+		else if(token.type == IDENTIFIER_T)
+		{
+			//Here we checks whether the identifier is declared,
+			//if the token is an indentifier.
+			SymbolNode* temp = checkId(token.lexeme);
+			temp->token = new tokenClass(token.type,token.subtype,token.lexeme);
+			return temp;
+		}
+		return NULL;
 	}
 	//All the other cases have three tokens
 	if(tokens.size() != 3)
-		return false;
+		return NULL;
 
 	//Reversed because of the stack.
 	tokenClass last = tokens[0];
@@ -586,84 +608,57 @@ bool parserClass::isValidRHS(std::vector<tokenClass> tokens)
 		return isValidRHS(std::vector<tokenClass>(1,middle));
 	//Then check the case of E X E, where X is a YASL operator
 	//If the expression at both ends of the expression are valid.
-	if(isValidRHS(std::vector<tokenClass>(1,first))&&isValidRHS(std::vector<tokenClass>(1,last)))
-	{
-		//Check +
-		if(middle.type == ADDOP_T && middle.subtype == ADD_ST)
-			return true;
-		//Check *
-		if(middle.type == MULOP_T && middle.subtype == MULTIPLY_ST)
-			return true;
-		//Check -
-		if(middle.type == ADDOP_T && middle.subtype == SUBSTRACT_ST)
-			return true;
-		//Check div
-		if(middle.type == MULOP_T && middle.subtype == DIV_ST)
-			return true;
-		//Check mod
-		if(middle.type == MULOP_T && middle.subtype == MOD_ST)
-			return true;
-		//Check or
-		if(middle.type == ADDOP_T && middle.subtype == OR_ST)
-			return true;
-		//Check and
-		if(middle.type == MULOP_T && middle.subtype == AND_ST)
-			return true;
-		//Check ==
-		if(middle.type == RELOP_T && middle.subtype == EQUAL_ST)
-			return true;
-		//Check <
-		if(middle.type == RELOP_T && middle.subtype == LESS_ST)
-			return true;
-		//Check <=
-		if(middle.type == RELOP_T && middle.subtype == LESSOREQUAL_ST)
-			return true;
-		//Check >
-		if(middle.type == RELOP_T && middle.subtype == GREATER_ST)
-			return true;
-		//Check >=
-		if(middle.type == RELOP_T && middle.subtype == GREATEROREQUAL_ST)
-			return true;
-		//Check <>
-		if(middle.type == RELOP_T && middle.subtype == UNEQUAL_ST)
-			return true;
-		return false;
-	}
-	return false;
+	SymbolNode* node1 = isValidRHS(std::vector<tokenClass>(1,first));
+	SymbolNode* node2 = isValidRHS(std::vector<tokenClass>(1,last));
+	if(node1 == NULL || node2 == NULL)
+		return NULL;
+	tokenClass* t1 = node1->token;
+	tokenClass* t2 = node2->token;
+	if(t1 == NULL || t2 == NULL)
+		return NULL;
+	SymbolNode* temp = addTempVariable(tokenClass(EMPTY_T,EMPTY_ST,EMPTY_LEXEME));
+	//Check +
+	if(middle.type == ADDOP_T && middle.subtype == ADD_ST)
+		return temp;
+	//Check *
+	if(middle.type == MULOP_T && middle.subtype == MULTIPLY_ST)
+		return temp;
+	//Check -
+	if(middle.type == ADDOP_T && middle.subtype == SUBSTRACT_ST)
+		return temp;
+	//Check div
+	if(middle.type == MULOP_T && middle.subtype == DIV_ST)
+		return temp;
+	//Check mod
+	if(middle.type == MULOP_T && middle.subtype == MOD_ST)
+		return temp;
+	//Check or
+	if(middle.type == ADDOP_T && middle.subtype == OR_ST)
+		return temp;
+	//Check and
+	if(middle.type == MULOP_T && middle.subtype == AND_ST)
+		return temp;
+	//Check ==
+	if(middle.type == RELOP_T && middle.subtype == EQUAL_ST)
+		return temp;
+	//Check <
+	if(middle.type == RELOP_T && middle.subtype == LESS_ST)
+		return temp;
+	//Check <=
+	if(middle.type == RELOP_T && middle.subtype == LESSOREQUAL_ST)
+		return temp;
+	//Check >
+	if(middle.type == RELOP_T && middle.subtype == GREATER_ST)
+		return temp;
+	//Check >=
+	if(middle.type == RELOP_T && middle.subtype == GREATEROREQUAL_ST)
+		return temp;
+	//Check <>
+	if(middle.type == RELOP_T && middle.subtype == UNEQUAL_ST)
+		return temp;
+	return NULL;
 }
 
-
-bool parserClass::isEndOfExpression(tokenClass token)
-{
-	if(token.subtype == NONE_ST)
-	{
-		if(token.type == DO_T || 
-			token.type == SEMICOLON_T||
-			token.type == THEN_T ||
-			token.type == BITLEFT_T ||
-			token.type == END_T ||
-			token.type == ELSE_T ||
-			token.type == COMMA_T ||
-			token.type == RIGHTPAREN_T)//Note: checking right paren here.
-			return true;
-	}
-	return false;
-}
-
-string parserClass::toPALLiteral(int n)
-{
-	return "#"+to_string(n);
-}
-
-string parserClass::toPALChar(char c)
-{
-	if(c == ' ')
-		return "#32";
-	//if(c>='A' && c <= 'Z' || c >='a' && c<= 'z')
-	string result = "^";
-	result += c;
-	return result;
-}
 
 void parserClass::recurDescentErrorAndExit(string found, vector<string> expected)
 {
@@ -705,16 +700,61 @@ SymbolNode* parserClass::checkId(string lexeme)
 	return result;
 }
 
+bool parserClass::isEndOfExpression(tokenClass token)
+{
+	if(token.subtype == NONE_ST)
+	{
+		if(token.type == DO_T || 
+			token.type == SEMICOLON_T||
+			token.type == THEN_T ||
+			token.type == BITLEFT_T ||
+			token.type == END_T ||
+			token.type == ELSE_T ||
+			token.type == COMMA_T ||
+			token.type == RIGHTPAREN_T)//Note: checking right paren here.
+			return true;
+	}
+	return false;
+}
+
+string parserClass::toPALLiteral(int n)
+{
+	return "#"+to_string(n);
+}
+
+string parserClass::toPALChar(char c)
+{
+	if(c == ' ')
+		return "#32";
+	//if(c>='A' && c <= 'Z' || c >='a' && c<= 'z')
+	string result = "^";
+	result += c;
+	return result;
+}
+
 void parserClass::printInstruction(string instruction, SymbolNode* firstParamPtr, string firstParam, SymbolNode* secondParamPtr, string secondParam)
 {
-	//TODO: complete the pointer part.
-	outfile<<instruction<<" "<<firstParam<<" "<<secondParam<<endl;
+	outfile<<instruction<<" "<<getParameter(firstParamPtr,firstParam)<<" "<<getParameter(secondParamPtr,secondParam)<<endl;
 }
 
 void parserClass::printInstruction(string instruction, SymbolNode* firstParamPtr, string firstParam)
 {
-	outfile<<instruction<<" "<<firstParam<<endl;
+	outfile<<instruction<<" "<<getParameter(firstParamPtr,firstParam)<<endl;
 }
+
+string parserClass::getParameter(SymbolNode* paramPtr, string param)
+{
+	if(paramPtr == NULL)
+		return param;
+	string s = "+"+to_string((paramPtr->offset)*PAL_WORD_SIZE)+toPALDirectAddressing(PAL_R0);
+	return s;
+}
+
+string parserClass::toPALDirectAddressing(string memoryLocation)
+{
+	return "@"+memoryLocation;
+}
+
 
 string parserClass::getNextTempName()
 {

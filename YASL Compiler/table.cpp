@@ -8,7 +8,7 @@
 #include "table.h"
 
 
-SymbolNode::SymbolNode(string lexeme, SymbolKind kind, SymbolType type):lexeme(lexeme),kind(kind),type(type),parameterTop(NULL),next(NULL),numOfParams(0)
+SymbolNode::SymbolNode(string lexeme, SymbolKind kind, SymbolType type):token(NULL),lexeme(lexeme),kind(kind),type(type),parameterTop(NULL),next(NULL),numOfParams(0)
 {}
 
 bool SymbolNode::addParameter(SymbolNode* parameter)
@@ -44,6 +44,7 @@ bool SymbolNode::addParameter(SymbolNode* parameter)
 }
 SymbolNode::~SymbolNode()
 {
+	delete token;
 	SymbolNode* p = parameterTop;
 	while(p != NULL)
 	{

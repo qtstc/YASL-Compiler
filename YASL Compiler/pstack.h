@@ -15,6 +15,7 @@ class StackCell
 {
 public:
 	tokenClass token;
+	SymbolNode *symbol;
 	StackCell *next;
 };
 
@@ -26,6 +27,7 @@ public:
 	pStackClass();
 	~pStackClass();
 	void push(tokenClass theToken);//Push a token onto the stack.
+	void pushE(SymbolNode* symbol);//Push a terminal E to the stack. the new stackCell will also contain
 	//Pop a token.
 	//If there is no token,
 	//return one that has the type EMPTY_T.

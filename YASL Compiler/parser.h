@@ -56,9 +56,9 @@ private:
 	void printPrecedenceTable();
 	//Get the precedence of two tokens.
 	Precedence prec(tokenClass firstToken,tokenClass secondToken);
-	//Check whether the RHS is valid. 
+	//Check whether the RHS is valid, if it is, a pointer to a node in the SymbolTable will be returned.
 	//It also checks whether the identifiers in the RHS is declared.
-	bool isValidRHS(std::vector<tokenClass> tokens);
+	SymbolNode* isValidRHS(std::vector<tokenClass> tokens);
 	//Exit the program when read an unexpected token for recursive descent parser.
 	void recurDescentErrorAndExit(string found, vector<string> expected);
 	//Exit the prorgam with the given message. Call this for syntax error.
@@ -79,6 +79,9 @@ private:
 	void printInstruction(string instruction, SymbolNode* firstParamPtr, string firstParam);
 	string toPALLiteral(int n);
 	string getNextTempName();
+	SymbolNode* addTempVariable(tokenClass token);
+	string toPALDirectAddressing(string memoryLocation);
+	string getParameter(SymbolNode* paramPtr, string param);
 };
 
 #endif

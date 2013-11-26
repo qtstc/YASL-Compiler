@@ -30,8 +30,5 @@ outb ^z
 outb ^:
 inw +8@R0
 inb @sp
-outw +0@R0
-outw +4@R0
-outw +8@R0
 inb @sp
 end

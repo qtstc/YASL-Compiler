@@ -11,6 +11,8 @@
 #include "general.h"
 using namespace std;
 
+class tokenClass;
+
 class SymbolNode
 {
 public:
@@ -19,6 +21,7 @@ public:
 	string lexeme;
 	SymbolKind kind;
 	SymbolType type;
+	tokenClass* token;
 	//The offset of this identifier from the start of the current scope
 	int offset;
 	//The nesting level of the table that this entry is contained in.

@@ -15,6 +15,16 @@ void pStackClass::push(tokenClass token)
 	tempCell->next = top;
 	top = tempCell;
 	tempCell->token = token;
+	tempCell->symbol = NULL;
+}
+
+void pStackClass::pushE(SymbolNode* symbol)
+{
+	StackCell *tempCell = new StackCell;
+	tempCell->next = top;
+	top = tempCell;
+	tempCell->token = tokenClass(E_T,NONE_ST,"E");
+	tempCell->symbol = symbol;
 }
 
 tokenClass pStackClass::pop()
