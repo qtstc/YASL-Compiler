@@ -373,20 +373,27 @@ void parserClass::parseExpr()
 		//Termination condition.
 		//It should be met if the expression is valid and terminate with semicolon
 		if(isEndOfExpression(t) && topTerm.type == SEMICOLON_T)
+		{
+			printInstruction(PAL_MOVW,stack.top->token.symbol,"",NULL,toPALDirectAddressing(PAL_R1));
+			printInstruction(PAL_MOVW,NULL,PAL_R1,NULL,PAL_SP);
+			printInstruction(PAL_ADDW,NULL,"#4",NULL,PAL_SP);
+			scanner.symbolTable.top->deleteTempSymbol();
+			//cout<<scanner.symbolTable.toString();
 			return;
+		}
 		Precedence p = prec(topTerm,t);//Store the precedence because it’s checked multiple times.
 		if(p == LESS_PRECEDENCE || p == EQUAL_PRECEDENCE)//Shift
 		{
-			stack.push(t);
+			stack.push(tokenSymbolClass(t.type,t.subtype,t.lexeme));
 			t = scanner.getToken();
 		}
 		else if(p == GREATER_PRECEDENCE)//Reduce
 		{
-			std::vector<tokenClass> tokens;
+			std::vector<tokenSymbolClass> tokens;
 			stack.lastTerminalPopped = tokenClass(EMPTY_T,EMPTY_ST,EMPTY_LEXEME);//Reset the lastTerminalPopped
 			do
 			{
-				tokenClass popped = stack.pop();
+				tokenSymbolClass popped = stack.pop();
 				if(popped.type == EMPTY_T)//If the stack is empty. This should not happen in normal operation.
 					errorAndExit("Empty stack.");
 				tokens.push_back(popped);
@@ -406,7 +413,7 @@ void parserClass::parseExpr()
 					cout<<endl;
 				}
 				//Replace the expression in the array with a E if the expression is valid.
-				stack.pushE(symbol);
+				stack.push(tokenSymbolClass(E_T,NONE_ST,"E",symbol));
 			}
 			else//If expression is invalid, throw error.
 				errorAndExit("Invalid right hand side.");
@@ -562,16 +569,19 @@ SymbolNode* parserClass::addTempVariable(tokenClass token)
 	if(token.type == TRUE_T || token.type == FALSE_T)
 		type = BOOLEAN_TYPE;
 	else if(token.type != INTEGER_T)
-		return false;
+		return NULL;
 
-	SymbolNode* node = new SymbolNode(getNextTempName(),VAR_ID,BOOLEAN_TYPE);
-	node->token = new tokenClass(token.type,token.subtype,token.lexeme);
+	SymbolNode* node = new SymbolNode(getNextTempName(),VAR_ID,type);
+	//node->token = new tokenClass(token.type,token.subtype,token.lexeme);
 	if(scanner.symbolTable.tableAddEntry(node))
+	{
+		printInstruction(PAL_ADDW,NULL,"#4",NULL,PAL_SP);
 		return node;
+	}
 	return NULL;
 }
 
-SymbolNode* parserClass::isValidRHS(std::vector<tokenClass> tokens)
+SymbolNode* parserClass::isValidRHS(std::vector<tokenSymbolClass> tokens)
 {
 	//Base case of a single terminal
 	if(tokens.size() == 1)
@@ -579,10 +589,21 @@ SymbolNode* parserClass::isValidRHS(std::vector<tokenClass> tokens)
 		tokenClass token = tokens.back();
 		if(token.type == INTEGER_T
 			||token.type == TRUE_T
-			||token.type == FALSE_T
-			||token.type == E_T)
+			||token.type == FALSE_T)
 		{
 			SymbolNode* temp = addTempVariable(token);
+			if(token.type == INTEGER_T)
+			{
+				printInstruction(PAL_MOVW,NULL,"#"+token.lexeme,temp,"");
+			}
+			else if(token.type == TRUE_T)
+			{
+				printInstruction(PAL_MOVW,NULL,"#1",temp,"");
+			}
+			else
+			{
+				printInstruction(PAL_MOVW,NULL,"#0",temp,"");
+			}
 			return temp;
 		}
 		else if(token.type == IDENTIFIER_T)
@@ -590,7 +611,6 @@ SymbolNode* parserClass::isValidRHS(std::vector<tokenClass> tokens)
 			//Here we checks whether the identifier is declared,
 			//if the token is an indentifier.
 			SymbolNode* temp = checkId(token.lexeme);
-			temp->token = new tokenClass(token.type,token.subtype,token.lexeme);
 			return temp;
 		}
 		return NULL;
@@ -600,62 +620,63 @@ SymbolNode* parserClass::isValidRHS(std::vector<tokenClass> tokens)
 		return NULL;
 
 	//Reversed because of the stack.
-	tokenClass last = tokens[0];
-	tokenClass middle = tokens[1];
-	tokenClass first = tokens[2];
+	tokenSymbolClass last = tokens[0];
+	tokenSymbolClass middle = tokens[1];
+	tokenSymbolClass first = tokens[2];
 	//First check the case of (E)
 	if(first.type == LEFTPAREN_T && last.type == RIGHTPAREN_T)
-		return isValidRHS(std::vector<tokenClass>(1,middle));
+		return middle.symbol;//Assume middle is valid E.
 	//Then check the case of E X E, where X is a YASL operator
 	//If the expression at both ends of the expression are valid.
-	SymbolNode* node1 = isValidRHS(std::vector<tokenClass>(1,first));
-	SymbolNode* node2 = isValidRHS(std::vector<tokenClass>(1,last));
+	SymbolNode* node1 = first.symbol;//Assuem first is valid E.
+	SymbolNode* node2 = last.symbol;//Assume last is valid E.
 	if(node1 == NULL || node2 == NULL)
 		return NULL;
-	tokenClass* t1 = node1->token;
-	tokenClass* t2 = node2->token;
-	if(t1 == NULL || t2 == NULL)
-		return NULL;
-	SymbolNode* temp = addTempVariable(tokenClass(EMPTY_T,EMPTY_ST,EMPTY_LEXEME));
 	//Check +
 	if(middle.type == ADDOP_T && middle.subtype == ADD_ST)
+	{
+		SymbolNode* temp = addTempVariable(tokenClass(INTEGER_T,NONE_ST,EMPTY_LEXEME));
+		//First move the first parameter to temp location
+		printInstruction(PAL_MOVW,node1,"",temp,"");
+		printInstruction(PAL_ADDW,node2,"",temp,"");
 		return temp;
+	}
 	//Check *
 	if(middle.type == MULOP_T && middle.subtype == MULTIPLY_ST)
-		return temp;
+		return NULL;
 	//Check -
 	if(middle.type == ADDOP_T && middle.subtype == SUBSTRACT_ST)
-		return temp;
+		return NULL;
 	//Check div
 	if(middle.type == MULOP_T && middle.subtype == DIV_ST)
-		return temp;
+		return NULL;
 	//Check mod
 	if(middle.type == MULOP_T && middle.subtype == MOD_ST)
-		return temp;
+		return NULL;
 	//Check or
 	if(middle.type == ADDOP_T && middle.subtype == OR_ST)
-		return temp;
+		return NULL;
 	//Check and
 	if(middle.type == MULOP_T && middle.subtype == AND_ST)
-		return temp;
+		return NULL;
 	//Check ==
 	if(middle.type == RELOP_T && middle.subtype == EQUAL_ST)
-		return temp;
+		return NULL;
 	//Check <
 	if(middle.type == RELOP_T && middle.subtype == LESS_ST)
-		return temp;
+		return NULL;
 	//Check <=
 	if(middle.type == RELOP_T && middle.subtype == LESSOREQUAL_ST)
-		return temp;
+		return NULL;
 	//Check >
 	if(middle.type == RELOP_T && middle.subtype == GREATER_ST)
-		return temp;
+		return NULL;
 	//Check >=
 	if(middle.type == RELOP_T && middle.subtype == GREATEROREQUAL_ST)
-		return temp;
+		return NULL;
 	//Check <>
 	if(middle.type == RELOP_T && middle.subtype == UNEQUAL_ST)
-		return temp;
+		return NULL;
 	return NULL;
 }
 

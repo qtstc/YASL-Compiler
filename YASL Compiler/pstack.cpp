@@ -7,31 +7,30 @@
 #include "stdafx.h"
 #include "pstack.h"
 
-pStackClass::pStackClass():top(NULL),lastTerminalPopped(tokenClass(EMPTY_T,EMPTY_ST,EMPTY_LEXEME)){}
+tokenSymbolClass::tokenSymbolClass(int type,int subtype,string lexeme):tokenClass(type,subtype,lexeme),symbol(NULL){}
+tokenSymbolClass::tokenSymbolClass():tokenClass(),symbol(NULL){}
+tokenSymbolClass::tokenSymbolClass(int type,int subtype,string lexeme,SymbolNode* symbol):tokenClass(type,subtype,lexeme),symbol(symbol){}
+tokenSymbolClass toTokenSymbolClass(tokenClass token)
+{
+	return tokenSymbolClass(token.type,token.subtype,token.lexeme);
+}
 
-void pStackClass::push(tokenClass token)
+pStackClass::pStackClass():top(NULL),lastTerminalPopped(tokenSymbolClass(EMPTY_T,EMPTY_ST,EMPTY_LEXEME)){}
+
+void pStackClass::push(tokenSymbolClass token)
 {
 	StackCell *tempCell = new StackCell;
 	tempCell->next = top;
 	top = tempCell;
 	tempCell->token = token;
-	tempCell->symbol = NULL;
 }
 
-void pStackClass::pushE(SymbolNode* symbol)
-{
-	StackCell *tempCell = new StackCell;
-	tempCell->next = top;
-	top = tempCell;
-	tempCell->token = tokenClass(E_T,NONE_ST,"E");
-	tempCell->symbol = symbol;
-}
 
-tokenClass pStackClass::pop()
+tokenSymbolClass pStackClass::pop()
 {
 	if(top == NULL)
-		return tokenClass(EMPTY_T,EMPTY_ST,EMPTY_LEXEME);
-	tokenClass token = top->token;
+		return tokenSymbolClass(EMPTY_T,EMPTY_ST,EMPTY_LEXEME);
+	tokenSymbolClass token = top->token;
 	//Check if the token is a terminal, if yes, update the lastTerminalPoped.
 	if(token.type != E_T)
 		lastTerminalPopped = token;
@@ -53,7 +52,7 @@ tokenClass pStackClass::getTopMostTerminal()
 		}
 		p = p->next;
 	}
-	return tokenClass(EMPTY_T,EMPTY_ST,EMPTY_LEXEME);//p == NULL
+	return tokenSymbolClass(EMPTY_T,EMPTY_ST,EMPTY_LEXEME);//p == NULL
 }
 
 pStackClass::~pStackClass()

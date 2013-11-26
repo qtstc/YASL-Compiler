@@ -1,10 +1,7 @@
 program demo;
 	int x, y, z;
 begin
-	cout<< 'Enter x:';
-	cin>>x;
-	cout<< 'Enter y:';
-	cin>>y;
-	cout<< 'Enter z:';
-	cin>>z
+	cin >> y;
+	cin >> z;
+	x = (y) + (33 + z)+1
 end.

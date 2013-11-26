@@ -9,13 +9,23 @@
 
 #include "scanner.h"
 
-//A data structure that serves as a wrapper for tokenClass.
+//A data strucuter that serves as a wrapper for tokenClass.
+//It has an additional pointer pointing to the corresponding 
+//entry in the symbol table.
+class tokenSymbolClass: public tokenClass
+{
+public:SymbolNode* symbol;
+	   tokenSymbolClass();
+	   tokenSymbolClass(int type,int subtype,string lexeme);
+	   tokenSymbolClass(int type,int subtype,string lexeme,SymbolNode* symbol);
+};
+
+//A data structure that serves as a wrapper for tokenSymbolClass.
 //It has an additional pointer allow us to link the tokens together.
 class StackCell
 {
 public:
-	tokenClass token;
-	SymbolNode *symbol;
+	tokenSymbolClass token;
 	StackCell *next;
 };
 
@@ -26,12 +36,11 @@ class pStackClass
 public:
 	pStackClass();
 	~pStackClass();
-	void push(tokenClass theToken);//Push a token onto the stack.
-	void pushE(SymbolNode* symbol);//Push a terminal E to the stack. the new stackCell will also contain
+	void push(tokenSymbolClass theToken);//Push a token onto the stack.
 	//Pop a token.
 	//If there is no token,
 	//return one that has the type EMPTY_T.
-	tokenClass pop();
+	tokenSymbolClass pop();
 	//Get the top most terminal in the stack. 
 	//If the stack does not contain a terminal,
 	//A token with EMPTY_T as type will be returned.
@@ -41,8 +50,6 @@ public:
 	tokenClass lastTerminalPopped;
 	//Return true if the token on the top of the stack is a terminal.
 	bool terminalOnTop();
-
-private:
 	StackCell *top;
 };
 

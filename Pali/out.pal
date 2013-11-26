@@ -1,34 +1,25 @@
 $main movw sp R0
 addw #12 SP
-outb ^E
-outb ^n
-outb ^t
-outb ^e
-outb ^r
-outb #32
-outb ^x
-outb ^:
-inw +0@R0
-inb @sp
-outb ^E
-outb ^n
-outb ^t
-outb ^e
-outb ^r
-outb #32
-outb ^y
-outb ^:
 inw +4@R0
 inb @sp
-outb ^E
-outb ^n
-outb ^t
-outb ^e
-outb ^r
-outb #32
-outb ^z
-outb ^:
 inw +8@R0
 inb @sp
+movw SP R1
+addw #4 SP
+movw #33 +12@R0
+addw #4 SP
+movw +12@R0 +16@R0
+addw +8@R0 +16@R0
+addw #4 SP
+movw +4@R0 +20@R0
+addw +16@R0 +20@R0
+addw #4 SP
+movw #1 +24@R0
+addw #4 SP
+movw +20@R0 +28@R0
+addw +24@R0 +28@R0
+movw +28@R0 @R1
+movw R1 SP
+addw #4 SP
 inb @sp
 end

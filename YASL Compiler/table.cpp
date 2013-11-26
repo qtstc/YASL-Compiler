@@ -8,7 +8,7 @@
 #include "table.h"
 
 
-SymbolNode::SymbolNode(string lexeme, SymbolKind kind, SymbolType type):token(NULL),lexeme(lexeme),kind(kind),type(type),parameterTop(NULL),next(NULL),numOfParams(0)
+SymbolNode::SymbolNode(string lexeme, SymbolKind kind, SymbolType type):lexeme(lexeme),kind(kind),type(type),parameterTop(NULL),next(NULL),numOfParams(0)
 {}
 
 bool SymbolNode::addParameter(SymbolNode* parameter)
@@ -42,9 +42,16 @@ bool SymbolNode::addParameter(SymbolNode* parameter)
 	end->next = parameter;
 	return true;
 }
+
+bool SymbolNode::isTempSymbol()
+{
+	if(lexeme[0] == '$')
+		return true;
+	return false;
+}
+
 SymbolNode::~SymbolNode()
 {
-	delete token;
 	SymbolNode* p = parameterTop;
 	while(p != NULL)
 	{
@@ -122,6 +129,36 @@ SymbolNode* TableLevel::lookup(string lexeme)
 		p = p->next;
 	}
 	return NULL;
+}
+
+int TableLevel::deleteTempSymbol()
+{
+	int count = 0;
+	SymbolNode* p = top;
+	if(p == NULL)
+		return count;
+	while(p->next != NULL)
+	{
+		SymbolNode* temp = p->next;
+		if(temp->isTempSymbol())
+		{
+			p->next = temp->next;
+			delete temp;
+			count++;
+		}
+		else
+		{
+			p = p->next;
+		}
+	}
+	if(top->isTempSymbol())
+	{
+		SymbolNode* temp = top;
+		top = top->next;
+		delete temp;
+		count++;
+	}
+	return count;
 }
 
 TableLevel::~TableLevel()

@@ -58,7 +58,7 @@ private:
 	Precedence prec(tokenClass firstToken,tokenClass secondToken);
 	//Check whether the RHS is valid, if it is, a pointer to a node in the SymbolTable will be returned.
 	//It also checks whether the identifiers in the RHS is declared.
-	SymbolNode* isValidRHS(std::vector<tokenClass> tokens);
+	SymbolNode* isValidRHS(std::vector<tokenSymbolClass> tokens);
 	//Exit the program when read an unexpected token for recursive descent parser.
 	void recurDescentErrorAndExit(string found, vector<string> expected);
 	//Exit the prorgam with the given message. Call this for syntax error.

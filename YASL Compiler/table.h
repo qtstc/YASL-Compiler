@@ -21,7 +21,6 @@ public:
 	string lexeme;
 	SymbolKind kind;
 	SymbolType type;
-	tokenClass* token;
 	//The offset of this identifier from the start of the current scope
 	int offset;
 	//The nesting level of the table that this entry is contained in.
@@ -37,6 +36,7 @@ public:
 	SymbolNode *parameterTop;
 	string toString();
 	string toStringForParameter();
+	bool isTempSymbol();
 };
 
 class TableLevel
@@ -68,6 +68,7 @@ public:
 	bool addSymbol(SymbolNode* node);
 	SymbolNode* lookup(string lexeme);
 	string toString();
+	int deleteTempSymbol();
 };
 
 class tableClass
