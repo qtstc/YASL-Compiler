@@ -139,6 +139,8 @@ std::string to_string(T value)
 #define PAL_MOVW "movw"
 #define PAL_SP "SP"
 #define PAL_INW "inw"
+#define PAL_OUTW "outw"
+#define PAL_OUTB "outb"
 #define PAL_R1 "R1"
 #define PAL_R0 "R0"
 

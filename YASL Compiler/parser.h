@@ -21,7 +21,7 @@ private:
 	tokenClass t;
 	fstream outfile;
 	void parseStatement();
-	void parseExpr();//Parse expressions use shift and reduce algorithm. If the expression is invalid, program will be terminated.
+	SymbolType parseExpr();//Parse expressions use shift and reduce algorithm. If the expression is invalid, program will be terminated.
 	void parseFollowID(SymbolNode* id);
 	void parseFollowIf();
 	int parseFollowExpr();
