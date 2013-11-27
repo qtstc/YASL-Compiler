@@ -1,12 +1,12 @@
-program demo;
-	int x, y;
+program test;
+
+  int x;
+
 begin
-	cin>>x;
-	cin>>y;
-	cout<< 'x equal y '<<x == y<<endl;
-	cout<< 'x greater y '<<x > y<<endl;
-	cout<< 'x greater equal y '<<x >= y<<endl;
-	cout<< 'x less y '<<x < y<<endl;
-	cout<< 'x less equal y '<<x <= y<<endl;
-	cout<< 'x not equal y '<<x <> y<<endl
+
+   x = 5;
+
+
+   cout << (x + true)   //invalid
+    
 end.

@@ -324,8 +324,20 @@ void parserClass::parseFollowID(SymbolNode* id)
 	case TILDE_T:
 		{
 			t = scanner.getToken();
-			checkId(t.lexeme);
+			SymbolNode* rightParam = checkId(t.lexeme);
 			checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
+			if(rightParam->type != id->type)
+				errorAndExit("Cannot swap "+id->lexeme+" and "+rightParam->lexeme+" because they are of different types.");
+			//First move the first parameter to the top of the stack
+			printInstruction(PAL_MOVW,id,"",NULL,toPALDirectAddressing(PAL_SP));
+			//Increase stack pointer
+			printInstruction(PAL_ADDW,NULL,"#4",NULL,PAL_SP);
+			//Then move the second parameter to the first parameter
+			printInstruction(PAL_MOVW,rightParam,"",id,"");
+			//Then move the first parameter back
+			printInstruction(PAL_MOVW,NULL,"-4"+toPALDirectAddressing(PAL_SP),rightParam,"");
+			//Then decrease SP to remove the temp
+			printInstruction(PAL_SUBW,NULL,"#4",NULL,PAL_SP);
 		}
 		break;
 	case LEFTPAREN_T://Function call

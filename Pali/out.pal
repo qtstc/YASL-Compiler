@@ -1,0 +1,13 @@
+$main movw sp R0
+addw #4 SP
+movw SP R1
+addw #4 SP
+movw #5 +4@R0
+movw +4@R0 @R1
+movw R1 SP
+addw #4 SP
+movw @R1 +0@R0
+movw R1 SP
+movw SP R1
+addw #4 SP
+movw #1 +8@R0
