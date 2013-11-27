@@ -137,10 +137,20 @@ std::string to_string(T value)
 #define PAL_WORD_SIZE 4
 #define PAL_ADDW "addw"
 #define PAL_MOVW "movw"
+#define PAL_MULW "mulw"
+#define PAL_SUBW "subw"
+#define PAL_DIVW "divw"
 #define PAL_SP "SP"
 #define PAL_INW "inw"
 #define PAL_OUTW "outw"
 #define PAL_OUTB "outb"
+#define PAL_BEQ "beq"//equal
+#define PAL_BNEQ "bneq"//not equal
+#define PAL_BLSS "blss"//less than
+#define PAL_BGTR "bgtr"//greater than
+#define PAL_BGEQ "bgeq"//greater equal
+#define PAL_BLEQ "bleq"//less equal
+#define PAL_CMPW "cmpw"
 #define PAL_R1 "R1"
 #define PAL_R0 "R0"
 

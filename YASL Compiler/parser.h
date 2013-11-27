@@ -27,7 +27,7 @@ private:
 	int parseFollowExpr();
 	void parseFollowBegin();
 	void parseStatementTail();
-	void parseFollowCin();
+	void parseFollowCin(bool onlyParam);
 	void parseFollowCout();
 	void parseCoutTail();
 	void parseVarDecs();
@@ -79,9 +79,18 @@ private:
 	void printInstruction(string instruction, SymbolNode* firstParamPtr, string firstParam);
 	string toPALLiteral(int n);
 	string getNextTempName();
-	SymbolNode* addTempVariable(tokenClass token);
+	SymbolNode* addTempVariable(SymbolType type);
 	string toPALDirectAddressing(string memoryLocation);
 	string getParameter(SymbolNode* paramPtr, string param);
+	//Pal operations
+	SymbolNode* palAdd(SymbolNode* node1, SymbolNode* node2);
+	SymbolNode* palMultiply(SymbolNode* node1, SymbolNode* node2);
+	SymbolNode* palSubtract(SymbolNode* node1, SymbolNode* node2);
+	SymbolNode* palDiv(SymbolNode* node1, SymbolNode* node2);
+	SymbolNode* palMod(SymbolNode* node1, SymbolNode* node2);
+	SymbolNode* palAnd(SymbolNode* node1,SymbolNode* node2);
+	SymbolNode* palOr(SymbolNode* node1,SymbolNode* node2);
+	SymbolNode* palBranch(SymbolNode* node1, SymbolNode* node2, string op);
 };
 
 #endif
