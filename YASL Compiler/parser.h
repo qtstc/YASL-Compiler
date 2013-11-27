@@ -75,18 +75,32 @@ private:
 	//Method used for generating PAL code.
 	//Convert ASCII char to the ones used in PAL
 	string toPALChar(char c);
+	//Print a PAL binary instruction. If the pointers are not null, the offsets of the symbols will be used
+	//as the address of the PAL parameter. Otherwise, the strings will be the operands.
 	void printInstruction(string instruction, SymbolNode* firstParamPtr, string firstParam, SymbolNode* secondParamPtr, string secondParam);
+	//Print a PAL unary instruction
 	void printInstruction(string instruction, SymbolNode* firstParamPtr, string firstParam);
+	//Convert an int to PAL literal
 	string toPALLiteral(int n);
+	//Convert an int(in string) tp PAL literal
+	string toPALLiteral(string n);
+	//Get the name of the next temporary variable to be used in the symbol table.
 	string getNextTempName();
+	//Add a temporary variable to the symbol table. Also generate PAL code that reserves space for the temp variable on the stack.
 	SymbolNode* addTempVariable(SymbolType type);
+	//Get the direct addressing reference to the given memory location
 	string toPALDirectAddressing(string memoryLocation);
+	//Get the PAL parameter either based on the offset of the symbol,
+	//or use the string.
 	string getParameter(SymbolNode* paramPtr, string param);
+	//Check that a variable is either an integer or a boolean.
+	//Throw an error otherwise.
+	void checkVariable(SymbolType type);
+	//Check that a variable is either an integer or a boolean.
+	//Throw an error otherwise.
+	void checkVariable(SymbolNode* node);
 	//Pal operations
-	SymbolNode* palAdd(SymbolNode* node1, SymbolNode* node2);
-	SymbolNode* palMultiply(SymbolNode* node1, SymbolNode* node2);
-	SymbolNode* palSubtract(SymbolNode* node1, SymbolNode* node2);
-	SymbolNode* palDiv(SymbolNode* node1, SymbolNode* node2);
+	SymbolNode* palArithmetic(SymbolNode* node1, SymbolNode* node2,string op);
 	SymbolNode* palMod(SymbolNode* node1, SymbolNode* node2);
 	SymbolNode* palAnd(SymbolNode* node1,SymbolNode* node2);
 	SymbolNode* palOr(SymbolNode* node1,SymbolNode* node2);

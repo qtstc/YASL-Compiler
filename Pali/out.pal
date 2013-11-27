@@ -1,13 +1,124 @@
-$main movw sp R0
-addw #4 SP
+$main movw SP R0
+addw #16 SP
+outb ^E
+outb ^n
+outb ^t
+outb ^e
+outb ^r
+outb #32
+outb ^a
+outb ^n
+outb #32
+outb ^i
+outb ^n
+outb ^t
+outb ^e
+outb ^g
+outb ^e
+outb ^r
+outb ^:
+outb #32
+inw +0@R0
+outb ^E
+outb ^n
+outb ^t
+outb ^e
+outb ^r
+outb #32
+outb ^a
+outb #32
+outb ^s
+outb ^e
+outb ^c
+outb ^o
+outb ^n
+outb ^d
+outb #32
+outb ^i
+outb ^n
+outb ^t
+outb ^e
+outb ^g
+outb ^e
+outb ^r
+outb ^:
+outb #32
+inw +4@R0
 movw SP R1
 addw #4 SP
-movw #5 +4@R0
-movw +4@R0 @R1
+movw +0@R0 +16@R0
+addw +4@R0 +16@R0
+movw +16@R0 @R1
 movw R1 SP
 addw #4 SP
-movw @R1 +0@R0
+movw @R1 +8@R0
 movw R1 SP
 movw SP R1
 addw #4 SP
-movw #1 +8@R0
+movw +0@R0 +20@R0
+addw +4@R0 +20@R0
+addw #4 SP
+movw #2 +24@R0
+addw #4 SP
+movw +20@R0 +28@R0
+divw +24@R0 +28@R0
+movw +28@R0 @R1
+movw R1 SP
+addw #4 SP
+movw @R1 +12@R0
+movw R1 SP
+outb ^P
+outb ^r
+outb ^e
+outb ^s
+outb ^s
+outb #32
+outb ^r
+outb ^e
+outb ^t
+outb ^u
+outb ^r
+outb ^n
+outb #32
+outb ^t
+outb ^o
+outb #32
+outb ^s
+outb ^e
+outb ^e
+outb #32
+outb ^t
+outb ^h
+outb ^e
+outb #32
+outb ^a
+outb ^n
+outb ^s
+outb ^w
+outb ^e
+outb ^r
+inb @SP
+outb ^T
+outb ^h
+outb ^e
+outb #32
+outb ^a
+outb ^v
+outb ^e
+outb ^r
+outb ^a
+outb ^g
+outb ^e
+outb #32
+outb ^i
+outb ^s
+outb ^:
+outb #32
+movw SP R1
+movw +12@R0 @R1
+movw R1 SP
+addw #4 SP
+outw @R1
+movw R1 SP
+inb @SP
+end

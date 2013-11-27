@@ -21,24 +21,18 @@ void parserClass::parseProgram()
 	t = scanner.getToken();
 	checkTokenAndGetNext(t,tokenClass(PROGRAM_T,NONE_ST,"program"));
 
-	outfile<<"$main movw sp R0"<<endl;
+	outfile<<"$main ";
+	//Store the bottom of the stack to R0.
+	printInstruction(PAL_MOVW,NULL,PAL_SP,NULL,PAL_R0);
 
 	scanner.symbolTable.tableAddLevel(t.lexeme);
 	checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
 	checkTokenAndGetNext(t,SEMICOLON_TOKEN);
 	parseBlock();
 	scanner.symbolTable.tableDelLevel();
-	outfile<<"inb @sp"<<endl;
+	printInstruction(PAL_INB,NULL,toPALDirectAddressing(PAL_SP));
 	outfile<<"end";
 	checkTokenAndGetNext(t,tokenClass(DOT_T,NONE_ST,"."));
-	/*int count = 0;
-	while(true)
-	{
-	parseStatement();
-	cout<<endl<<"PARSED "<<count<<endl<<endl;
-	checkTokenAndGetNext(t,tokenClass(SEMICOLON_T,NONE_ST,";"));
-	count++;
-	}*/
 	cout<< "YASLC-TQ has just compiled "<<scanner.numLinesProcessed()<<" lines successfully."<<endl;
 	scanner.close();
 	outfile.close();
@@ -154,6 +148,7 @@ void parserClass::parseFuncIdentTail()
 void parserClass::parseBlock()
 {
 	parseVarDecs();
+	//Move SP up to give space for the global variables
 	int stackDiff = PAL_WORD_SIZE*scanner.symbolTable.top->nextOffset;
 	printInstruction(PAL_ADDW,NULL,toPALLiteral(stackDiff),NULL,PAL_SP);
 	parseFuncDecs();
@@ -174,6 +169,8 @@ void parserClass::parseStatement()
 		{
 			t = scanner.getToken();
 			parseExpr();
+			//TODO: use the parameter. Now the result of the expression is just cleared from the stack
+			printInstruction(PAL_MOVW,NULL,PAL_R1,NULL,PAL_SP);
 			checkTokenAndGetNext(t,tokenClass(DO_T,NONE_ST,"do"));
 			parseStatement();
 		}
@@ -182,6 +179,8 @@ void parserClass::parseStatement()
 		{
 			t = scanner.getToken();
 			parseExpr();
+			//TODO: use the parameter. Now the result of the expression is just cleared from the stack
+			printInstruction(PAL_MOVW,NULL,PAL_R1,NULL,PAL_SP);
 			checkTokenAndGetNext(t,tokenClass(THEN_T,NONE_ST,"then"));
 			parseStatement();
 			parseFollowIf();
@@ -262,7 +261,7 @@ void parserClass::parseFollowCin(bool onlyParam)
 	}
 	else if(onlyParam)
 	{
-		outfile<<"inb @sp"<<endl;
+		printInstruction(PAL_INB,NULL,toPALDirectAddressing(PAL_SP));
 	}
 }
 
@@ -292,12 +291,14 @@ void parserClass::parseFollowCout()
 		break;
 	case ENDL_T:
 		{
-			printInstruction(PAL_OUTB,NULL,"#10");
+			//Print the next line character
+			printInstruction(PAL_OUTB,NULL,toPALLiteral(PAL_NEXT_LINE));
 			t = scanner.getToken();
 		}
 		break;
 	default:
 		SymbolType resultType = parseExpr();
+		checkVariable(resultType);
 		//First print the result of the expression
 		printInstruction(PAL_OUTW,NULL,toPALDirectAddressing(PAL_R1));
 		//Then remove the temp from the top of the stack
@@ -306,11 +307,11 @@ void parserClass::parseFollowCout()
 }
 void parserClass::parseFollowID(SymbolNode* id)
 {
-	//TODO(in later project), check the type of id.
 	switch(t.type)
 	{
 	case ASSIGNMENT_T:
 		{
+			checkVariable(id);
 			t = scanner.getToken();
 			SymbolType resultType = parseExpr();
 			if(id->type != resultType)
@@ -323,6 +324,7 @@ void parserClass::parseFollowID(SymbolNode* id)
 		break;
 	case TILDE_T:
 		{
+			checkVariable(id);
 			t = scanner.getToken();
 			SymbolNode* rightParam = checkId(t.lexeme);
 			checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
@@ -331,20 +333,24 @@ void parserClass::parseFollowID(SymbolNode* id)
 			//First move the first parameter to the top of the stack
 			printInstruction(PAL_MOVW,id,"",NULL,toPALDirectAddressing(PAL_SP));
 			//Increase stack pointer
-			printInstruction(PAL_ADDW,NULL,"#4",NULL,PAL_SP);
+			printInstruction(PAL_ADDW,NULL,toPALLiteral(PAL_WORD_SIZE),NULL,PAL_SP);
 			//Then move the second parameter to the first parameter
 			printInstruction(PAL_MOVW,rightParam,"",id,"");
 			//Then move the first parameter back
 			printInstruction(PAL_MOVW,NULL,"-4"+toPALDirectAddressing(PAL_SP),rightParam,"");
 			//Then decrease SP to remove the temp
-			printInstruction(PAL_SUBW,NULL,"#4",NULL,PAL_SP);
+			printInstruction(PAL_SUBW,NULL,toPALLiteral(PAL_WORD_SIZE),NULL,PAL_SP);
 		}
 		break;
 	case LEFTPAREN_T://Function call
 		{
+			if(id->kind != FUNC_ID)
+				errorAndExit(id->lexeme+" is not a function.");
 			int expectedParamCount = id->numOfParams;
 			t = scanner.getToken();
 			parseExpr();
+			//TODO: implement function calls in later part of the project, now the expression result is just removed
+			printInstruction(PAL_MOVW,NULL,PAL_R1,NULL,PAL_SP);
 			int foundParamCount = 1+parseFollowExpr();
 			if(expectedParamCount != foundParamCount)
 				errorAndExit("Incorrect number of parameters for function ["+id->lexeme+"]. Expecting "+to_string(expectedParamCount)+", found "+to_string(foundParamCount)
@@ -368,6 +374,8 @@ int parserClass::parseFollowExpr()
 	{
 		t = scanner.getToken();
 		parseExpr();
+		//TODO: use the parameter. Now the result of the expression is just cleared from the stack
+		printInstruction(PAL_MOVW,NULL,PAL_R1,NULL,PAL_SP);
 		return 1+parseFollowExpr();
 	}
 	return 0;
@@ -397,13 +405,15 @@ SymbolType parserClass::parseExpr()
 		//It should be met if the expression is valid and terminate with semicolon
 		if(isEndOfExpression(t) && topTerm.type == SEMICOLON_T)
 		{
+			//Move the entry on top of the stack(the result of the expression) to R1
 			printInstruction(PAL_MOVW,stack.top->token.symbol,"",NULL,toPALDirectAddressing(PAL_R1));
+			//Move SP back to R1(clear all temp variables created during parsing)
 			printInstruction(PAL_MOVW,NULL,PAL_R1,NULL,PAL_SP);
-			printInstruction(PAL_ADDW,NULL,"#4",NULL,PAL_SP);
+			//Move SP up
+			printInstruction(PAL_ADDW,NULL,toPALLiteral(PAL_WORD_SIZE),NULL,PAL_SP);
 			//Store the type to be returned before deleting the temp variables in the table
 			SymbolType type = stack.top->token.symbol->type;
 			scanner.symbolTable.top->deleteTempSymbol();
-			//cout<<scanner.symbolTable.toString();
 			return type;
 		}
 		Precedence p = prec(topTerm,t);//Store the precedence because it’s checked multiple times.
@@ -592,71 +602,37 @@ SymbolNode* parserClass::addTempVariable(SymbolType type)
 {
 
 	SymbolNode* node = new SymbolNode(getNextTempName(),VAR_ID,type);
-	//node->token = new tokenClass(token.type,token.subtype,token.lexeme);
 	if(scanner.symbolTable.tableAddEntry(node))
 	{
-		printInstruction(PAL_ADDW,NULL,"#4",NULL,PAL_SP);
+		//Move SP up to give space for the new temp variable
+		printInstruction(PAL_ADDW,NULL,toPALLiteral(PAL_WORD_SIZE),NULL,PAL_SP);
 		return node;
 	}
 	return NULL;
 }
 
-SymbolNode* parserClass::palAdd(SymbolNode* node1, SymbolNode* node2)
+SymbolNode* parserClass::palArithmetic(SymbolNode* node1, SymbolNode* node2,string op)
 {
 		SymbolNode* temp = addTempVariable(INT_TYPE);
 		//First move the first parameter to temp location
 		printInstruction(PAL_MOVW,node1,"",temp,"");
-		printInstruction(PAL_ADDW,node2,"",temp,"");
+		//Then carry out the arithmetic operation on the temp
+		printInstruction(op,node2,"",temp,"");
 		return temp;
 }
 
-SymbolNode* parserClass::palMultiply(SymbolNode* node1, SymbolNode* node2)
-{
-		SymbolNode* temp = addTempVariable(INT_TYPE);
-		//First move the first parameter to temp location
-		printInstruction(PAL_MOVW,node1,"",temp,"");
-		printInstruction(PAL_MULW,node2,"",temp,"");
-		return temp;
-}
-
-SymbolNode* parserClass::palSubtract(SymbolNode* node1, SymbolNode* node2)
-{
-		SymbolNode* temp = addTempVariable(INT_TYPE);
-		//First move the first parameter to temp location
-		printInstruction(PAL_MOVW,node1,"",temp,"");
-		printInstruction(PAL_SUBW,node2,"",temp,"");
-		return temp;
-}
-
-SymbolNode* parserClass::palDiv(SymbolNode* node1, SymbolNode* node2)
-{
-		SymbolNode* temp = addTempVariable(INT_TYPE);
-		//First move the first parameter to temp location
-		printInstruction(PAL_MOVW,node1,"",temp,"");
-		printInstruction(PAL_DIVW,node2,"",temp,"");
-		return temp;
-}
 
 SymbolNode* parserClass::palMod(SymbolNode* node1, SymbolNode* node2)
 {
-		SymbolNode* temp1 = addTempVariable(INT_TYPE);
-		SymbolNode* temp2 = addTempVariable(INT_TYPE);
-		//First move the first parameter to temp1
-		printInstruction(PAL_MOVW,node1,"",temp1,"");
-		//Divide it by the second parameter to get multiplication
-		printInstruction(PAL_DIVW,node2,"",temp1,"");
-		//Multiply the result by the second parameter
-		printInstruction(PAL_MULW,node2,"",temp1,"");
-		//Move the first parameter to temp2
-		printInstruction(PAL_MOVW,node1,"",temp2,"");
-		//Subtract temp1 from temp2
-		printInstruction(PAL_SUBW,temp1,"",temp2,"");
-		return temp2;
+		SymbolNode* temp1 = palArithmetic(node1,node2,PAL_DIVW);
+		SymbolNode* temp2 = palArithmetic(node2,temp1,PAL_MULW);
+		SymbolNode* temp3 = palArithmetic(node1,temp2,PAL_SUBW);
+		return temp3;
 }
 
 SymbolNode* parserClass::palAnd(SymbolNode* node1, SymbolNode* node2)
 {
-	SymbolNode* result = palMultiply(node1,node2);
+	SymbolNode* result = palArithmetic(node1,node2,PAL_MULW);
 	result->type = BOOLEAN_TYPE;
 	return result;
 }
@@ -664,20 +640,25 @@ SymbolNode* parserClass::palAnd(SymbolNode* node1, SymbolNode* node2)
 SymbolNode* parserClass::palOr(SymbolNode* node1, SymbolNode* node2)
 {
 	SymbolNode* andResult = palAnd(node1,node2);
-	SymbolNode* addResult = palAdd(node1,node2);
-	SymbolNode* result = palSubtract(addResult,andResult);
+	SymbolNode* addResult = palArithmetic(node1,node2,PAL_ADDW);
+	SymbolNode* result = palArithmetic(addResult,andResult,PAL_SUBW);
 	result->type = BOOLEAN_TYPE;
 	return result;
 }
 
 SymbolNode* parserClass::palBranch(SymbolNode* node1, SymbolNode* node2, string op)
 {
+	//First compare the two parameters
 	printInstruction(PAL_CMPW,node1,"",node2,"");
+	//Add a temp variable as the result
 	SymbolNode* temp = addTempVariable(BOOLEAN_TYPE);
-	printInstruction(PAL_MOVW,NULL,"#1",temp,"");
+	//First set the temp to be true
+	printInstruction(PAL_MOVW,NULL,toPALLiteral(1),temp,"");
 	string branchName = getNextTempName();
+	//Based on the comparision, either skip to the label, or 
+	//carry out the next instruction, which set the temp to false.
 	printInstruction(op,NULL,branchName);
-	printInstruction(PAL_MOVW,NULL,"#0",temp,"");
+	printInstruction(PAL_MOVW,NULL,toPALLiteral(0),temp,"");
 	outfile<<branchName<<" ";
 	return temp;
 }
@@ -690,27 +671,28 @@ SymbolNode* parserClass::isValidRHS(std::vector<tokenSymbolClass> tokens)
 		tokenClass token = tokens.back();
 		if(token.type == INTEGER_T
 			||token.type == TRUE_T
-			||token.type == FALSE_T)
+			||token.type == FALSE_T)//If token is a literal
 		{
+			//Create a temp variable in the table and stack based on type of token
 			SymbolNode* temp = NULL;
 			if(token.type == INTEGER_T)
 			{
 				temp = addTempVariable(INT_TYPE);
-				printInstruction(PAL_MOVW,NULL,"#"+token.lexeme,temp,"");
+				printInstruction(PAL_MOVW,NULL,toPALLiteral(token.lexeme),temp,"");
 			}
 			else if(token.type == TRUE_T)
 			{
 				temp = addTempVariable(BOOLEAN_TYPE);
-				printInstruction(PAL_MOVW,NULL,"#1",temp,"");
+				printInstruction(PAL_MOVW,NULL,toPALLiteral(1),temp,"");
 			}
 			else
 			{
 				temp = addTempVariable(BOOLEAN_TYPE);
-				printInstruction(PAL_MOVW,NULL,"#0",temp,"");
+				printInstruction(PAL_MOVW,NULL,toPALLiteral(0),temp,"");
 			}
 			return temp;
 		}
-		else if(token.type == IDENTIFIER_T)
+		else if(token.type == IDENTIFIER_T)//If token is a variable
 		{
 			//Here we checks whether the identifier is declared,
 			//if the token is an indentifier.
@@ -736,56 +718,59 @@ SymbolNode* parserClass::isValidRHS(std::vector<tokenSymbolClass> tokens)
 	SymbolNode* node2 = last.symbol;//Assume last is valid E.
 	if(node1 == NULL || node2 == NULL)
 		return NULL;
+	//Make sure both operands are of the same type first.
 	if(node1->type != node2->type)
 		errorAndExit(node1->lexeme+" and "+node2->lexeme+" are not of the same type.");
+	//Make sure both operands are of type int or boolean.
+	checkVariable(node1);
 
 	//Check +
 	if(middle.type == ADDOP_T && middle.subtype == ADD_ST)
 	{
 		if(node1->type != INT_TYPE)
-			errorAndExit("Addition can only be done with integers.");
-		return palAdd(node1,node2);
+			errorAndExit("Addition can only be used with integers.");
+		return palArithmetic(node1,node2,PAL_ADDW);
 	}
 	//Check *
 	if(middle.type == MULOP_T && middle.subtype == MULTIPLY_ST)
 	{
 		if(node1->type != INT_TYPE)
-			errorAndExit("Multiplication can only be done with integers.");
-		return palMultiply(node1,node2);
+			errorAndExit("Multiplication can only be used with integers.");
+		return palArithmetic(node1,node2,PAL_MULW);
 	}
 	//Check -
 	if(middle.type == ADDOP_T && middle.subtype == SUBSTRACT_ST)
 	{
 		if(node1->type != INT_TYPE)
-			errorAndExit("Subtraction can only be done with integers.");
-		return palSubtract(node1,node2);
+			errorAndExit("Subtraction can only be used with integers.");
+		return palArithmetic(node1,node2,PAL_SUBW);
 	}
 	//Check div
 	if(middle.type == MULOP_T && middle.subtype == DIV_ST)
 	{
 		if(node1->type != INT_TYPE)
-			errorAndExit("Division can only be done with integers.");
-		return palDiv(node1,node2);
+			errorAndExit("Division can only be used used integers.");
+		return palArithmetic(node1,node2,PAL_DIVW);
 	}
 	//Check mod
 	if(middle.type == MULOP_T && middle.subtype == MOD_ST)
 	{
 		if(node1->type != INT_TYPE)
-			errorAndExit("Mod can only be done with integers.");
+			errorAndExit("Mod can only be used with integers.");
 		return palMod(node1,node2);
 	}
 	//Check or
 	if(middle.type == ADDOP_T && middle.subtype == OR_ST)
 	{
 		if(node1->type != BOOLEAN_TYPE)
-			errorAndExit("OR can only be done with booleans.");
+			errorAndExit("OR can only be used with booleans.");
 		return palOr(node1,node2);
 	}
 	//Check and
 	if(middle.type == MULOP_T && middle.subtype == AND_ST)
 	{
 		if(node1->type != BOOLEAN_TYPE)
-			errorAndExit("AND can only be done with booleans.");
+			errorAndExit("AND can only be used with booleans.");
 		return palAnd(node1,node2);
 	}
 	//Check ==
@@ -881,13 +866,18 @@ bool parserClass::isEndOfExpression(tokenClass token)
 
 string parserClass::toPALLiteral(int n)
 {
-	return "#"+to_string(n);
+	return toPALLiteral(to_string(n));
+}
+
+string parserClass::toPALLiteral(string n)
+{
+	return "#"+n;
 }
 
 string parserClass::toPALChar(char c)
 {
 	if(c == ' ')
-		return "#32";
+		return toPALLiteral(PAL_SPACE);
 	//if(c>='A' && c <= 'Z' || c >='a' && c<= 'z')
 	string result = "^";
 	result += c;
@@ -924,4 +914,14 @@ string parserClass::getNextTempName()
 	char tempName[10];
 	sprintf(tempName,"$%d",nextCt++);
 	return tempName;
+}
+
+void parserClass::checkVariable(SymbolType type)
+{
+	if(type != INT_TYPE && type != BOOLEAN_TYPE)
+		errorAndExit("Expecting a variable, but found "+string(symbolTypeStrings[type]));
+}
+void parserClass::checkVariable(SymbolNode* node)
+{
+	checkVariable(node->type);
 }

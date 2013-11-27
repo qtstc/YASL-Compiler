@@ -1,12 +1,13 @@
-program test;
-
-  int x;
-
+program demo;
+int input1, input2, sum, avg;
 begin
-
-   x = 5;
-
-
-   cout << (x + true)   //invalid
-    
+cout << 'Enter an integer: ';
+cin >> input1;
+cout << 'Enter a second integer: ';
+cin >> input2;
+sum = input1 + input2;
+avg = (input1 + input2) div 2;
+cout << 'Press return to see the answer';
+cin;
+cout << 'The average is: ' << avg
 end.
