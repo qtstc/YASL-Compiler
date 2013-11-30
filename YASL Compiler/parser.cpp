@@ -16,7 +16,8 @@ parserClass::parserClass()
 void parserClass::parseProgram()
 {
 	//Open a new file for writing the generated code.
-	outfile.open("..\\Pali\\out.pal",ios::out);
+	//outfile.open("..\\Pali\\out.pal",ios::out);
+	outfile.open("out.pal",ios::out);
 
 	t = scanner.getToken();
 	checkTokenAndGetNext(t,tokenClass(PROGRAM_T,NONE_ST,"program"));
