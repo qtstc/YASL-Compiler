@@ -80,9 +80,11 @@ private:
 	void printInstruction(string instruction, SymbolNode* firstParamPtr, string firstParam, SymbolNode* secondParamPtr, string secondParam);
 	//Print a PAL unary instruction
 	void printInstruction(string instruction, SymbolNode* firstParamPtr, string firstParam);
+	//Print branch name in PAL
+	void printBranch(string branchName);
 	//Convert an int to PAL literal
 	string toPALLiteral(int n);
-	//Convert an int(in string) tp PAL literal
+	//Convert an int(in string) to PAL literal
 	string toPALLiteral(string n);
 	//Get the name of the next temporary variable to be used in the symbol table.
 	string getNextTempName();

@@ -22,7 +22,7 @@ void parserClass::parseProgram()
 	t = scanner.getToken();
 	checkTokenAndGetNext(t,tokenClass(PROGRAM_T,NONE_ST,"program"));
 
-	outfile<<"$main ";
+	printBranch("$main");
 	//Store the bottom of the stack to R0.
 	printInstruction(PAL_MOVW,NULL,PAL_SP,NULL,PAL_R0);
 
@@ -168,23 +168,52 @@ void parserClass::parseStatement()
 	{
 	case WHILE_T:
 		{
+			string topBranch = getNextTempName();
+			string afterBranch = getNextTempName();
+			printBranch(topBranch);//Start of top branch
 			t = scanner.getToken();
-			parseExpr();
-			//TODO: use the parameter. Now the result of the expression is just cleared from the stack
+			
+			SymbolType resultType = parseExpr();
+			if(resultType != BOOLEAN_TYPE)
+				errorAndExit("The condition statement of while loop must evaluate to a boolean.");
+			//Compare 0 with with the result of the condition statement of while loop.
+			printInstruction(PAL_CMPW,NULL,toPALLiteral(0),NULL,toPALDirectAddressing(PAL_R1));
+			//Clear the temp variable.
 			printInstruction(PAL_MOVW,NULL,PAL_R1,NULL,PAL_SP);
+			//Print after branch
+			printInstruction(PAL_BEQ,NULL,afterBranch);
 			checkTokenAndGetNext(t,tokenClass(DO_T,NONE_ST,"do"));
 			parseStatement();
+			//jump statement
+			printInstruction(PAL_JMP,NULL,topBranch);
+			//print after label
+			printBranch(afterBranch);//end of while
 		}
 		break;
 	case IF_T:
 		{
 			t = scanner.getToken();
-			parseExpr();
-			//TODO: use the parameter. Now the result of the expression is just cleared from the stack
+			string ifBranch = getNextTempName();
+			string elseBranch = getNextTempName();
+			SymbolType resultType = parseExpr();
+			if(resultType != BOOLEAN_TYPE)
+				errorAndExit("The condition statement of if loop must evaluate to a boolean.");
+			//Compare 0 with with the result of the condition statement of if.
+			printInstruction(PAL_CMPW,NULL,toPALLiteral(0),NULL,toPALDirectAddressing(PAL_R1));
+			//Clear the temp variable.
 			printInstruction(PAL_MOVW,NULL,PAL_R1,NULL,PAL_SP);
+			//Print skip branch
+			printInstruction(PAL_BEQ,NULL,ifBranch);
 			checkTokenAndGetNext(t,tokenClass(THEN_T,NONE_ST,"then"));
 			parseStatement();
+			//jump statement
+			printInstruction(PAL_JMP,NULL,elseBranch);
+			printBranch(ifBranch);
+			//Dummy statement required because if there is no else statement,
+			//two branch names will be on the same line, which is invalid.
+			printInstruction(PAL_MOVW,NULL,PAL_R0,NULL,PAL_R0);
 			parseFollowIf();
+			printBranch(elseBranch);
 		}
 		break;
 	case IDENTIFIER_T:
@@ -660,7 +689,7 @@ SymbolNode* parserClass::palBranch(SymbolNode* node1, SymbolNode* node2, string 
 	//carry out the next instruction, which set the temp to false.
 	printInstruction(op,NULL,branchName);
 	printInstruction(PAL_MOVW,NULL,toPALLiteral(0),temp,"");
-	outfile<<branchName<<" ";
+	printBranch(branchName);
 	return temp;
 }
 
@@ -925,4 +954,9 @@ void parserClass::checkVariable(SymbolType type)
 void parserClass::checkVariable(SymbolNode* node)
 {
 	checkVariable(node->type);
+}
+
+void parserClass::printBranch(string branchName)
+{
+	outfile<<branchName<<" ";
 }

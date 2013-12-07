@@ -1,0 +1,14 @@
+program demo;
+int n, m;
+begin
+while(n < 10) do
+begin
+	m = 0;
+	while (m < 3) do
+	begin
+		cout <<n<<','<<m<<endl;
+		m = m+1
+	end;
+	n = n+1
+end
+end.

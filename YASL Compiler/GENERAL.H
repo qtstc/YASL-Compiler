@@ -152,6 +152,7 @@ std::string to_string(T value)
 #define PAL_BGEQ "bgeq"//greater equal
 #define PAL_BLEQ "bleq"//less equal
 #define PAL_CMPW "cmpw"
+#define PAL_JMP "jmp"
 #define PAL_R1 "R1"
 #define PAL_R0 "R0"
 #define PAL_SPACE 32
