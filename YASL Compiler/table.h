@@ -34,6 +34,8 @@ public:
 	//If (kind == FUNC_ID) then store a pointer to 
 	//a linked list of the formal parameters for the function.
 	SymbolNode *parameterTop;
+	//Label used in PAL to mark the beginning of the function
+	string PALLabel;
 	string toString();
 	string toStringForParameter();
 	bool isTempSymbol();

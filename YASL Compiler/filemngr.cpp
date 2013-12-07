@@ -15,10 +15,10 @@ fileManagerClass::fileManagerClass():autoPrintStatus(false)
 //               processed and has inialized the currentLineNumber to 0
 {  char filename[MAXCELLSPERSTRING];
 
-   cout << "Enter file name to compile: ";
-   cin.getline (filename, MAXCELLSPERSTRING);
-   fileToCompile.open(filename);
-   //fileToCompile.open("test.txt");
+   //cout << "Enter file name to compile: ";
+   //cin.getline (filename, MAXCELLSPERSTRING);
+   //fileToCompile.open(filename);
+   fileToCompile.open("test.txt");
    
    if (fileToCompile.fail())
    {  cout << "Error, the file: " << filename << " was not opened." << endl;

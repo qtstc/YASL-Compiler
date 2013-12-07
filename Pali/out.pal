@@ -1,47 +1,89 @@
 $main movw SP R0
+addw #8 SP
+jmp $0
+$1 addw #4 SP
+jmp $2
+$3 addw #0 SP
+jmp $4
+$4 movw SP R1
 addw #4 SP
-inw +0@R0
+movw #8 +0@FP
+movw +0@FP @R1
+movw R1 SP
+addw #4 SP
+movw @R1 +0@FP
+movw R1 SP
 movw SP R1
 addw #4 SP
-movw #10 +4@R0
-cmpw +0@R0 +4@R0
+movw #1 +4@FP
 addw #4 SP
-movw #1 +8@R0
-blss $4
-movw #0 +8@R0
-$4 movw +8@R0 @R1
+movw +0@FP +8@FP
+addw +4@FP +8@FP
+movw +8@FP @R1
 movw R1 SP
 addw #4 SP
-cmpw #0 @R1
+movw @R1 +0@FP
 movw R1 SP
-beq $0
-outb ^n
+movw SP R1
+addw #4 SP
+movw #1 +12@FP
+addw #4 SP
+movw +4@R0 +16@FP
+addw +12@FP +16@FP
+movw +16@FP @R1
+movw R1 SP
+addw #4 SP
+movw @R1 +4@R0
+movw R1 SP
+movw SP R1
+movw +0@FP @R1
+movw R1 SP
+addw #4 SP
+outw @R1
+movw R1 SP
 outb #32
-outb ^i
-outb ^s
-outb #32
-outb ^s
-outb ^m
-outb ^a
-outb ^l
-outb ^l
-outb ^e
-outb ^r
-outb #32
-outb ^t
-outb ^h
-outb ^a
-outb ^n
-outb #32
-outb ^1
-outb ^0
+movw SP R1
+movw +4@R0 @R1
+movw R1 SP
+addw #4 SP
+outw @R1
+movw R1 SP
 outb #10
-jmp $1
-$0 movw R0 R0
-$1 outb ^e
-outb ^n
-outb ^d
-outb ^e
-outb ^d
+movw FP SP
+ret 
+$2 call #0 $3
+movw FP SP
+ret 
+$0 movw SP R1
+addw #4 SP
+movw #5 +8@R0
+movw +8@R0 @R1
+movw R1 SP
+addw #4 SP
+movw @R1 +0@R0
+movw R1 SP
+movw SP R1
+addw #4 SP
+movw #10 +12@R0
+movw +12@R0 @R1
+movw R1 SP
+addw #4 SP
+movw @R1 +4@R0
+movw R1 SP
+call #0 $1
+movw SP R1
+movw +0@R0 @R1
+movw R1 SP
+addw #4 SP
+outw @R1
+movw R1 SP
+outb #32
+movw SP R1
+movw +4@R0 @R1
+movw R1 SP
+addw #4 SP
+outw @R1
+movw R1 SP
+outb #10
 inb @SP
 end

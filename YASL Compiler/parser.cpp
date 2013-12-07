@@ -16,8 +16,8 @@ parserClass::parserClass()
 void parserClass::parseProgram()
 {
 	//Open a new file for writing the generated code.
-	//outfile.open("..\\Pali\\out.pal",ios::out);
-	outfile.open("out.pal",ios::out);
+	outfile.open("..\\Pali\\out.pal",ios::out);
+	//outfile.open("out.pal",ios::out);
 
 	t = scanner.getToken();
 	checkTokenAndGetNext(t,tokenClass(PROGRAM_T,NONE_ST,"program"));
@@ -90,8 +90,13 @@ void parserClass::parseFuncDecs()
 		return;
 	t = scanner.getToken();
 	//First add the function to the table in cuurent scope
-	if(!scanner.symbolTable.tableAddEntry(new SymbolNode(t.lexeme,FUNC_ID,FUNC_ID_TYPE)))
+	SymbolNode* funcSymbol = new SymbolNode(t.lexeme,FUNC_ID,FUNC_ID_TYPE);
+	if(!scanner.symbolTable.tableAddEntry(funcSymbol))
 		errorAndExit("Duplicate identifier ["+t.lexeme+"] in the same scope.");
+	string palLabel = getNextTempName();
+	funcSymbol->PALLabel = palLabel;
+	//Start of the function call in PAL
+	printBranch(palLabel);
 	//Then create a new level of table for the function
 	scanner.symbolTable.tableAddLevel(t.lexeme);
 	checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
@@ -100,8 +105,12 @@ void parserClass::parseFuncDecs()
 	parseBlock();
 	scanner.symbolTable.tableDelLevel();
 	checkTokenAndGetNext(t,SEMICOLON_TOKEN);
+	//end of the function call in PAL
+	printInstruction(PAL_MOVW,NULL,PAL_FP,NULL,PAL_SP);
+	printInstruction(PAL_RET,NULL,"");
 	parseFuncDecs();
 }
+
 void parserClass::parseFuncDecTail()
 {
 	if(t.type != LEFTPAREN_T)
@@ -152,7 +161,11 @@ void parserClass::parseBlock()
 	//Move SP up to give space for the global variables
 	int stackDiff = PAL_WORD_SIZE*scanner.symbolTable.top->nextOffset;
 	printInstruction(PAL_ADDW,NULL,toPALLiteral(stackDiff),NULL,PAL_SP);
+	//Get the name of the block and jump there
+	string blockName = getNextTempName();
+	printInstruction(PAL_JMP,NULL,blockName);
 	parseFuncDecs();
+	printBranch(blockName);
 	parseProgBody();
 }
 
@@ -389,11 +402,12 @@ void parserClass::parseFollowID(SymbolNode* id)
 		}
 		break;
 	default:
-		//Checkk the case when id is a function but does not have any parameter
+		//Check the case when id is a function but does not have any parameter
 		if(id->kind==FUNC_ID)
 		{
 			if(id->numOfParams != 0)
 				errorAndExit("Incorrect number of parameters for function ["+id->lexeme+"]. Expecting "+to_string(id->numOfParams)+", found none.");
+			printInstruction(PAL_CALL,NULL,toPALLiteral(0),NULL,id->PALLabel);
 		}
 	}
 }
@@ -928,7 +942,13 @@ string parserClass::getParameter(SymbolNode* paramPtr, string param)
 {
 	if(paramPtr == NULL)
 		return param;
-	string s = "+"+to_string((paramPtr->offset)*PAL_WORD_SIZE)+toPALDirectAddressing(PAL_R0);
+	string address = "";
+	//TODO: now address is only correct for variables defined as global or local)
+	//, not for those defined at level 1,2, etc.
+	if(paramPtr->nestingLevel == 0)
+		address = toPALDirectAddressing(PAL_R0);
+	else address = toPALDirectAddressing(PAL_FP);
+	string s = "+"+to_string((paramPtr->offset)*PAL_WORD_SIZE)+address;
 	return s;
 }
 

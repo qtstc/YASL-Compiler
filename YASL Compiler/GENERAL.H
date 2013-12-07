@@ -141,6 +141,7 @@ std::string to_string(T value)
 #define PAL_SUBW "subw"
 #define PAL_DIVW "divw"
 #define PAL_SP "SP"
+#define PAL_FP "FP"
 #define PAL_INW "inw"
 #define PAL_INB "inb"
 #define PAL_OUTW "outw"
@@ -152,7 +153,9 @@ std::string to_string(T value)
 #define PAL_BGEQ "bgeq"//greater equal
 #define PAL_BLEQ "bleq"//less equal
 #define PAL_CMPW "cmpw"
+#define PAL_CALL "call"
 #define PAL_JMP "jmp"
+#define PAL_RET "ret"
 #define PAL_R1 "R1"
 #define PAL_R0 "R0"
 #define PAL_SPACE 32

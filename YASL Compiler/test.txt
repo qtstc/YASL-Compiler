@@ -1,8 +1,20 @@
 program demo;
-int n;
+int x,y;
+function foo;
+	int x;
+	function fee;
+	begin
+		x=8;
+			x = x + 1;
+			y = y + 1;
+			cout<<x<<' '<<y<<endl
+		end;
+	begin
+		fee
+	end;
 begin
-cin>>n;
-if(n < 10) then
-	cout<<'n is smaller than 10'<<endl;
-cout<<'ended'
+	x = 5;
+	y = 10;
+	foo;
+	cout<<x<<' '<<y<<endl
 end.

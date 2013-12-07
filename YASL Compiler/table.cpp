@@ -8,7 +8,7 @@
 #include "table.h"
 
 
-SymbolNode::SymbolNode(string lexeme, SymbolKind kind, SymbolType type):lexeme(lexeme),kind(kind),type(type),parameterTop(NULL),next(NULL),numOfParams(0)
+SymbolNode::SymbolNode(string lexeme, SymbolKind kind, SymbolType type):lexeme(lexeme),kind(kind),type(type),parameterTop(NULL),next(NULL),PALLabel(EMPTY_LEXEME),numOfParams(0)
 {}
 
 bool SymbolNode::addParameter(SymbolNode* parameter)
