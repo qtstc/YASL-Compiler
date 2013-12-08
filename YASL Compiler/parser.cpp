@@ -193,7 +193,7 @@ void parserClass::parseStatement()
 			string afterBranch = getNextTempName();
 			printBranch(topBranch);//Start of top branch
 			t = scanner.getToken();
-			
+
 			SymbolType resultType = parseExpr();
 			if(resultType != BOOLEAN_TYPE)
 				errorAndExit("The condition statement of while loop must evaluate to a boolean.");
@@ -397,13 +397,27 @@ void parserClass::parseFollowID(SymbolNode* id)
 		{
 			if(id->kind != FUNC_ID)
 				errorAndExit(id->lexeme+" is not a function.");
-			t = scanner.getToken();
-			SymbolType paramType = parseExpr();
+			t=scanner.getToken();
+			//Get the first parameter of the function definition
 			SymbolNode* param = id->parameterTop;
-			if(paramType != param->type)
-				errorAndExit("The 1st parameter of "+string(id->lexeme)+" should be "+string(symbolTypeStrings[param->type])+". Found "+symbolTypeStrings[paramType]+".");
-			//Do not clear the stack yet. leave the variables on the top and clear them after function call.
-
+			if(param->kind == REF_PARAM)//If the parameter is a reference
+			{
+				SymbolNode* firstParam = checkId(t.lexeme);
+				//The token must be an identifier.
+				checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
+				//Move the address of the parameter on to the top of the stack
+				printInstruction(PAL_MOVA,firstParam,"",NULL,toPALDirectAddressing(PAL_SP));
+				//Move SP up
+				printInstruction(PAL_ADDW,NULL,toPALLiteral(PAL_WORD_SIZE),NULL,PAL_SP);
+			}
+			else//If the parameter is not a reference
+			{
+				SymbolType paramType = parseExpr();
+				if(paramType != param->type)
+					errorAndExit("The 1st parameter of "+string(id->lexeme)+" should be "+string(symbolTypeStrings[param->type])+". Found "+symbolTypeStrings[paramType]+".");
+				//Do not clear the stack yet. leave the variables on the top and clear them after function call.
+			}
+			//Parse the other parameters.
 			parseFollowExpr(param->next);
 
 			checkTokenAndGetNext(t,tokenClass(RIGHTPAREN_T,NONE_ST,")"));
@@ -428,12 +442,26 @@ void parserClass::parseFollowExpr(SymbolNode* param)
 	{
 		if(param == NULL)
 			errorAndExit("Incorrect number of parameters.");//Too many parameters
+
 		t = scanner.getToken();
-		SymbolType paramType = parseExpr();
-		if(paramType != param->type)
-			errorAndExit("The parameter should be "+string(symbolTypeStrings[param->type])+". Found "+string(symbolTypeStrings[paramType])+".");
-		//Do not clear the stack yet. leave the variables on the top and clear them after function call.
-		//printInstruction(PAL_MOVW,NULL,PAL_R1,NULL,PAL_SP);
+
+		if(param->kind == REF_PARAM)//If the parameter is a reference
+		{
+			SymbolNode* firstParam = checkId(t.lexeme);
+			//The token must be an identifier.
+			checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
+			//Move the address of the parameter on to the top of the stack
+			printInstruction(PAL_MOVA,firstParam,"",NULL,toPALDirectAddressing(PAL_SP));
+			//Move SP up
+			printInstruction(PAL_ADDW,NULL,toPALLiteral(PAL_WORD_SIZE),NULL,PAL_SP);
+		}
+		else//If the parameter is not a reference
+		{
+			SymbolType paramType = parseExpr();
+			if(paramType != param->type)
+				errorAndExit("The parameter should be "+string(symbolTypeStrings[param->type])+". Found "+string(symbolTypeStrings[paramType])+".");
+			//Do not clear the stack yet. leave the variables on the top and clear them after function call.
+		}
 		parseFollowExpr(param->next);
 	}
 	else if(param != NULL)
@@ -671,21 +699,21 @@ SymbolNode* parserClass::addTempVariable(SymbolType type)
 
 SymbolNode* parserClass::palArithmetic(SymbolNode* node1, SymbolNode* node2,string op)
 {
-		SymbolNode* temp = addTempVariable(INT_TYPE);
-		//First move the first parameter to temp location
-		printInstruction(PAL_MOVW,node1,"",temp,"");
-		//Then carry out the arithmetic operation on the temp
-		printInstruction(op,node2,"",temp,"");
-		return temp;
+	SymbolNode* temp = addTempVariable(INT_TYPE);
+	//First move the first parameter to temp location
+	printInstruction(PAL_MOVW,node1,"",temp,"");
+	//Then carry out the arithmetic operation on the temp
+	printInstruction(op,node2,"",temp,"");
+	return temp;
 }
 
 
 SymbolNode* parserClass::palMod(SymbolNode* node1, SymbolNode* node2)
 {
-		SymbolNode* temp1 = palArithmetic(node1,node2,PAL_DIVW);
-		SymbolNode* temp2 = palArithmetic(node2,temp1,PAL_MULW);
-		SymbolNode* temp3 = palArithmetic(node1,temp2,PAL_SUBW);
-		return temp3;
+	SymbolNode* temp1 = palArithmetic(node1,node2,PAL_DIVW);
+	SymbolNode* temp2 = palArithmetic(node2,temp1,PAL_MULW);
+	SymbolNode* temp3 = palArithmetic(node1,temp2,PAL_SUBW);
+	return temp3;
 }
 
 SymbolNode* parserClass::palAnd(SymbolNode* node1, SymbolNode* node2)
@@ -962,6 +990,8 @@ string parserClass::getParameter(SymbolNode* paramPtr, string param)
 	if(paramPtr->nestingLevel == 0)
 		address = toPALDirectAddressing(PAL_R0);
 	else address = toPALDirectAddressing(PAL_FP);
+	if(paramPtr->kind==REF_PARAM)//If is reference.
+		address = toPALDirectAddressing(address);
 	string s = "+"+to_string((paramPtr->offset)*PAL_WORD_SIZE)+address;
 	return s;
 }

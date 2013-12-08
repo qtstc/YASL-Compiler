@@ -139,6 +139,7 @@ std::string to_string(T value)
 #define PAL_WORD_SIZE 4
 #define PAL_ADDW "addw"
 #define PAL_MOVW "movw"
+#define PAL_MOVA "mova"//move address
 #define PAL_MULW "mulw"
 #define PAL_SUBW "subw"
 #define PAL_DIVW "divw"
