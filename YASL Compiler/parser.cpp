@@ -397,18 +397,18 @@ void parserClass::parseFollowID(SymbolNode* id)
 		{
 			if(id->kind != FUNC_ID)
 				errorAndExit(id->lexeme+" is not a function.");
-			int expectedParamCount = id->numOfParams;
 			t = scanner.getToken();
-			parseExpr();
+			SymbolType paramType = parseExpr();
+			SymbolNode* param = id->parameterTop;
+			if(paramType != param->type)
+				errorAndExit("The 1st parameter of "+string(id->lexeme)+" should be "+string(symbolTypeStrings[param->type])+". Found "+symbolTypeStrings[paramType]+".");
 			//Do not clear the stack yet. leave the variables on the top and clear them after function call.
-			//printInstruction(PAL_MOVW,NULL,PAL_R1,NULL,PAL_SP);
-			int foundParamCount = 1+parseFollowExpr();
-			if(expectedParamCount != foundParamCount)
-				errorAndExit("Incorrect number of parameters for function ["+id->lexeme+"]. Expecting "+to_string(expectedParamCount)+", found "+to_string(foundParamCount)
-				+".");
+
+			parseFollowExpr(param->next);
+
 			checkTokenAndGetNext(t,tokenClass(RIGHTPAREN_T,NONE_ST,")"));
-			printInstruction(PAL_CALL,NULL,toPALLiteral(foundParamCount),NULL,id->PALLabel);
-			printInstruction(PAL_SUBW,NULL,toPALLiteral(foundParamCount*PAL_WORD_SIZE),NULL,PAL_SP);
+			printInstruction(PAL_CALL,NULL,toPALLiteral(id->numOfParams),NULL,id->PALLabel);
+			printInstruction(PAL_SUBW,NULL,toPALLiteral(id->numOfParams*PAL_WORD_SIZE),NULL,PAL_SP);
 		}
 		break;
 	default:
@@ -422,18 +422,22 @@ void parserClass::parseFollowID(SymbolNode* id)
 	}
 }
 
-int parserClass::parseFollowExpr()
+void parserClass::parseFollowExpr(SymbolNode* param)
 {
 	if(t.type == COMMA_T)
 	{
+		if(param == NULL)
+			errorAndExit("Incorrect number of parameters.");//Too many parameters
 		t = scanner.getToken();
-		parseExpr();
+		SymbolType paramType = parseExpr();
+		if(paramType != param->type)
+			errorAndExit("The parameter should be "+string(symbolTypeStrings[param->type])+". Found "+string(symbolTypeStrings[paramType])+".");
 		//Do not clear the stack yet. leave the variables on the top and clear them after function call.
 		//printInstruction(PAL_MOVW,NULL,PAL_R1,NULL,PAL_SP);
-		return 1+parseFollowExpr();
+		parseFollowExpr(param->next);
 	}
-	return 0;
-	//Do nothing otherwise
+	else if(param != NULL)
+		errorAndExit("Incorrect number of parameters.");//Too few parameters.
 }
 void parserClass::parseFollowIf()
 {

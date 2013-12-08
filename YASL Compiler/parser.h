@@ -24,7 +24,7 @@ private:
 	SymbolType parseExpr();//Parse expressions use shift and reduce algorithm. If the expression is invalid, program will be terminated.
 	void parseFollowID(SymbolNode* id);
 	void parseFollowIf();
-	int parseFollowExpr();
+	void parseFollowExpr(SymbolNode* param);
 	void parseFollowBegin();
 	void parseStatementTail();
 	void parseFollowCin(bool onlyParam);

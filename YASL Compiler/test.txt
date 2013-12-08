@@ -8,6 +8,6 @@ function fee;
 		cout<<'I have no param'<<endl
 	end;
 begin
-	foo(2,3);
+	foo(2,true);
 	fee
 end.

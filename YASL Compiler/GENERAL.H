@@ -130,6 +130,8 @@ std::string to_string(T value)
 	return os.str() ;
 }
 
+
+
 #define IDENTIFIER_TOKEN tokenSymbolClass(IDENTIFIER_T,NONE_ST,"identifier")
 #define SEMICOLON_TOKEN tokenSymbolClass(SEMICOLON_T,NONE_ST,";")
 
