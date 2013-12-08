@@ -178,6 +178,8 @@ string TableLevel::toString()
 	s += name;
 	s += ", nesting level=";
 	s += to_string(nestingLevel);
+	s += ", next offset=";
+	s += to_string(nextOffset);
 	if(top != NULL)
 	{
 		SymbolNode *p = top;

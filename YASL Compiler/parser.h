@@ -41,7 +41,7 @@ private:
 	void parseParamList();
 	void parseTypeTail(SymbolType type);
 	void parseFuncIdentTail();
-	void parseBlock();
+	void parseBlock(int paramCount);
 	void parseProgBody();
 
 	Precedence precedenceTable[PRECEDENCE_TABLE_DIMENSION][PRECEDENCE_TABLE_DIMENSION];

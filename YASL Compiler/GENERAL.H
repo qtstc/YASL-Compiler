@@ -142,6 +142,7 @@ std::string to_string(T value)
 #define PAL_DIVW "divw"
 #define PAL_SP "SP"
 #define PAL_FP "FP"
+#define PAL_AP "AP"
 #define PAL_INW "inw"
 #define PAL_INB "inb"
 #define PAL_OUTW "outw"

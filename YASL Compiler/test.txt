@@ -1,20 +1,13 @@
 program demo;
-int x,y;
-function foo;
-	int x;
-	function fee;
+function foo(int a,int b);
 	begin
-		x=8;
-			x = x + 1;
-			y = y + 1;
-			cout<<x<<' '<<y<<endl
-		end;
+		cout<<a<<' '<<b<<endl
+	end;
+function fee;
 	begin
-		fee
+		cout<<'I have no param'<<endl
 	end;
 begin
-	x = 5;
-	y = 10;
-	foo;
-	cout<<x<<' '<<y<<endl
+	foo(2,3);
+	fee
 end.

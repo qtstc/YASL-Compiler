@@ -29,7 +29,7 @@ void parserClass::parseProgram()
 	scanner.symbolTable.tableAddLevel(t.lexeme);
 	checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
 	checkTokenAndGetNext(t,SEMICOLON_TOKEN);
-	parseBlock();
+	parseBlock(0);
 	scanner.symbolTable.tableDelLevel();
 	printInstruction(PAL_INB,NULL,toPALDirectAddressing(PAL_SP));
 	outfile<<"end";
@@ -102,7 +102,8 @@ void parserClass::parseFuncDecs()
 	checkTokenAndGetNext(t,IDENTIFIER_TOKEN);
 	parseFuncDecTail();
 	checkTokenAndGetNext(t,SEMICOLON_TOKEN);
-	parseBlock();
+	//next offset is the number of parameters the function has
+	parseBlock(scanner.symbolTable.top->nextOffset);
 	scanner.symbolTable.tableDelLevel();
 	checkTokenAndGetNext(t,SEMICOLON_TOKEN);
 	//end of the function call in PAL
@@ -155,11 +156,18 @@ void parserClass::parseFuncIdentTail()
 		parseParamList();
 	}
 }
-void parserClass::parseBlock()
+void parserClass::parseBlock(int paramCount)
 {
 	parseVarDecs();
 	//Move SP up to give space for the global variables
 	int stackDiff = PAL_WORD_SIZE*scanner.symbolTable.top->nextOffset;
+	//Move the parameters
+	for(int i = 0;i<paramCount;i++)
+	{
+		string apAddress = "-"+to_string(i * PAL_WORD_SIZE)+toPALDirectAddressing(PAL_AP);
+		string spAddress = "+"+to_string((paramCount-i-1)*PAL_WORD_SIZE)+toPALDirectAddressing(PAL_SP);
+		printInstruction(PAL_MOVW,NULL,apAddress,NULL,spAddress);
+	}
 	printInstruction(PAL_ADDW,NULL,toPALLiteral(stackDiff),NULL,PAL_SP);
 	//Get the name of the block and jump there
 	string blockName = getNextTempName();
@@ -392,13 +400,15 @@ void parserClass::parseFollowID(SymbolNode* id)
 			int expectedParamCount = id->numOfParams;
 			t = scanner.getToken();
 			parseExpr();
-			//TODO: implement function calls in later part of the project, now the expression result is just removed
-			printInstruction(PAL_MOVW,NULL,PAL_R1,NULL,PAL_SP);
+			//Do not clear the stack yet. leave the variables on the top and clear them after function call.
+			//printInstruction(PAL_MOVW,NULL,PAL_R1,NULL,PAL_SP);
 			int foundParamCount = 1+parseFollowExpr();
 			if(expectedParamCount != foundParamCount)
 				errorAndExit("Incorrect number of parameters for function ["+id->lexeme+"]. Expecting "+to_string(expectedParamCount)+", found "+to_string(foundParamCount)
 				+".");
 			checkTokenAndGetNext(t,tokenClass(RIGHTPAREN_T,NONE_ST,")"));
+			printInstruction(PAL_CALL,NULL,toPALLiteral(foundParamCount),NULL,id->PALLabel);
+			printInstruction(PAL_SUBW,NULL,toPALLiteral(foundParamCount*PAL_WORD_SIZE),NULL,PAL_SP);
 		}
 		break;
 	default:
@@ -418,8 +428,8 @@ int parserClass::parseFollowExpr()
 	{
 		t = scanner.getToken();
 		parseExpr();
-		//TODO: use the parameter. Now the result of the expression is just cleared from the stack
-		printInstruction(PAL_MOVW,NULL,PAL_R1,NULL,PAL_SP);
+		//Do not clear the stack yet. leave the variables on the top and clear them after function call.
+		//printInstruction(PAL_MOVW,NULL,PAL_R1,NULL,PAL_SP);
 		return 1+parseFollowExpr();
 	}
 	return 0;

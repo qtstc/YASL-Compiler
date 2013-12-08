@@ -1,41 +1,11 @@
 $main movw SP R0
-addw #8 SP
+addw #0 SP
 jmp $0
-$1 addw #4 SP
+$1 movw -0@AP +4@SP
+movw -4@AP +0@SP
+addw #8 SP
 jmp $2
-$3 addw #0 SP
-jmp $4
-$4 movw SP R1
-addw #4 SP
-movw #8 +0@FP
-movw +0@FP @R1
-movw R1 SP
-addw #4 SP
-movw @R1 +0@FP
-movw R1 SP
-movw SP R1
-addw #4 SP
-movw #1 +4@FP
-addw #4 SP
-movw +0@FP +8@FP
-addw +4@FP +8@FP
-movw +8@FP @R1
-movw R1 SP
-addw #4 SP
-movw @R1 +0@FP
-movw R1 SP
-movw SP R1
-addw #4 SP
-movw #1 +12@FP
-addw #4 SP
-movw +4@R0 +16@FP
-addw +12@FP +16@FP
-movw +16@FP @R1
-movw R1 SP
-addw #4 SP
-movw @R1 +4@R0
-movw R1 SP
-movw SP R1
+$2 movw SP R1
 movw +0@FP @R1
 movw R1 SP
 addw #4 SP
@@ -43,7 +13,7 @@ outw @R1
 movw R1 SP
 outb #32
 movw SP R1
-movw +4@R0 @R1
+movw +4@FP @R1
 movw R1 SP
 addw #4 SP
 outw @R1
@@ -51,39 +21,40 @@ movw R1 SP
 outb #10
 movw FP SP
 ret 
-$2 call #0 $3
+$3 addw #0 SP
+jmp $4
+$4 outb ^I
+outb #32
+outb ^h
+outb ^a
+outb ^v
+outb ^e
+outb #32
+outb ^n
+outb ^o
+outb #32
+outb ^p
+outb ^a
+outb ^r
+outb ^a
+outb ^m
+outb #10
 movw FP SP
 ret 
 $0 movw SP R1
 addw #4 SP
-movw #5 +8@R0
-movw +8@R0 @R1
-movw R1 SP
-addw #4 SP
-movw @R1 +0@R0
-movw R1 SP
-movw SP R1
-addw #4 SP
-movw #10 +12@R0
-movw +12@R0 @R1
-movw R1 SP
-addw #4 SP
-movw @R1 +4@R0
-movw R1 SP
-call #0 $1
-movw SP R1
+movw #2 +0@R0
 movw +0@R0 @R1
 movw R1 SP
 addw #4 SP
-outw @R1
-movw R1 SP
-outb #32
 movw SP R1
+addw #4 SP
+movw #3 +4@R0
 movw +4@R0 @R1
 movw R1 SP
 addw #4 SP
-outw @R1
-movw R1 SP
-outb #10
+call #2 $1
+subw #8 SP
+call #0 $3
 inb @SP
 end
