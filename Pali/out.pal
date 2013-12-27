@@ -1,0 +1,88 @@
+$main movw SP R0
+addw #0 SP
+addw #4 SP
+movw +0$display @SP
+movw FP +0$display
+movw +0$display R3
+movw @SP +0@R3
+jmp $1
+$2 movw -0@AP +0@SP
+addw #4 SP
+addw #4 SP
+movw +4$display @SP
+movw FP +4$display
+movw +4$display R3
+movw @SP +4@R3
+jmp $4
+$4 movw SP R1
+addw #4 SP
+movw +4$display R3
+movw #1 +8@R3
+movw +4$display R2
+movw +4$display R3
+cmpw +0@R2 +8@R3
+addw #4 SP
+movw +4$display R3
+movw #1 +12@R3
+bgtr $9
+movw +4$display R3
+movw #0 +12@R3
+$9 movw +4$display R2
+movw +12@R2 @R1
+movw R1 SP
+addw #4 SP
+cmpw #0 @R1
+movw R1 SP
+beq $5
+movw SP R1
+addw #4 SP
+movw +4$display R3
+movw #1 +16@R3
+addw #4 SP
+movw +4$display R2
+movw +4$display R3
+movw +0@R2 +20@R3
+movw +4$display R2
+movw +4$display R3
+subw +16@R2 +20@R3
+movw +4$display R2
+movw +20@R2 @R1
+movw R1 SP
+addw #4 SP
+outb ^z
+outw +4$display
+outb #10
+call #1 $2
+outb ^z
+outw +4$display
+outb #10
+subw #4 SP
+movw SP R1
+movw +4$display R2
+movw +0@R2 @R1
+movw R1 SP
+addw #4 SP
+outw @R1
+movw R1 SP
+outb #10
+jmp $6
+$5 movw R0 R0
+$6 movw +4$display R2
+movw +4@R2 +4$display
+movw FP SP
+ret 
+$display #8
+$1 movw SP R1
+addw #4 SP
+movw +0$display R3
+movw #3 +4@R3
+movw +0$display R2
+movw +4@R2 @R1
+movw R1 SP
+addw #4 SP
+call #1 $2
+subw #4 SP
+movw +0$display R2
+movw +0@R2 +0$display
+inb @SP
+end

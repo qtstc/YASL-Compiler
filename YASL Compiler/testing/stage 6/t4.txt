@@ -1,0 +1,13 @@
+program test;
+
+  int x, y, product, remainder;
+
+begin
+  x = 7;
+  y = 25;
+  product = x * y;
+  remainder = y mod x;
+  cout << 'should be 175: ' << product << endl;
+  cout << 'should be 4: ' << remainder << endl;
+  cout << 'should be 179: ' << (product + remainder) << endl
+end.

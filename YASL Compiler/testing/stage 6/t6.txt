@@ -1,0 +1,9 @@
+program test;
+
+   int x;
+
+begin
+
+  x = (1+1-1+1-1*1 div 1)*(((1))) + 9 mod 8;
+  cout << 'Should be 2: ' << x
+end.

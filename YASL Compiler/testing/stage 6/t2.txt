@@ -1,0 +1,12 @@
+program test;
+
+  int x, y, z, w;
+
+begin
+  cout << 'Enter a value: ';
+  cin >> x;
+  cout << 'Another value: ';
+  cin >> y;
+  w = x + y;
+  cout << 'Sum is: ' << w << ' all done!'
+end.

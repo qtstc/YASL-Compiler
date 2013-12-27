@@ -1,0 +1,15 @@
+program test;
+
+  int x;
+
+
+  function foo;
+  begin
+
+  end;
+
+begin
+
+   foo = x + 2  //invalid -- type mismatch
+ 
+end.

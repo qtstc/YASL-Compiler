@@ -1,0 +1,12 @@
+program test;
+
+  int x;
+
+begin
+
+   x = 5;
+
+
+   cout << (x + true)   //invalid
+    
+end.

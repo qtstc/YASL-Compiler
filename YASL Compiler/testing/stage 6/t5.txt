@@ -1,0 +1,17 @@
+program test;
+
+   boolean bool1;
+   INT x, y, z;
+   
+
+begin
+     
+   x = 10;
+   y = 7;
+   z = x + y;
+   bool1 = (2 <= 3) and (x >= y) and (z+x == 27);
+   cout << 'Should be true or 1: ' << bool1 << endl;
+   bool1 = 10-1 <> 10+1-2;
+   cout << 'Should be false or 0: ' << bool1
+
+end.
